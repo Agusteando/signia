@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/auth";
@@ -19,7 +18,7 @@ export async function POST(req) {
     const payload = ticket.getPayload();
     const { email, name, picture } = payload;
 
-    // Only institutional emails permitted
+    // Solo se permite el dominio institucional
     if (
       typeof email !== "string" ||
       !/@casitaiedis\.edu\.mx$/.test(email)
@@ -28,25 +27,19 @@ export async function POST(req) {
     }
 
     let user = await prisma.user.findUnique({ where: { email } });
+    
+    // Verificación estricta de rol
     if (user) {
       if (!["admin", "superadmin"].includes(user.role)) {
-        return NextResponse.json({ error: "Acceso restringido solo a administradores institucionales." }, { status: 403 });
+        return NextResponse.json({ error: "Acceso denegado. No tienes rol de administrador asignado en el sistema." }, { status: 403 });
       }
       user = await prisma.user.update({
         where: { email },
         data: { name, picture, isActive: true },
       });
     } else {
-      // By default, create as admin
-      user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          picture,
-          isActive: true,
-          role: "admin",
-        }
-      });
+      // Si no existe, rechazamos la conexión, NO LO CREAMOS como administrador
+      return NextResponse.json({ error: "Cuenta no registrada como administrador. Contacta a soporte para que te otorguen acceso." }, { status: 403 });
     }
 
     const res = NextResponse.json({ ok: true, user: { id: user.id, email: user.email, role: user.role } });

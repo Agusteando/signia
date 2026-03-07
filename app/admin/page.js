@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -104,7 +103,7 @@ export default function AdminLogin() {
         </div>
         <div className="w-full text-center text-xs mt-5 text-slate-500 dark:text-slate-300">
           <ArrowRightEndOnRectangleIcon className="w-4 h-4 inline mr-1 mb-0.5 text-fuchsia-600 dark:text-fuchsia-300" />
-          Solo personal autorizado con correo <span className="font-bold text-purple-900 dark:text-fuchsia-100">institucional</span>
+          Acceso exclusivo para <span className="font-bold text-purple-900 dark:text-fuchsia-100">Administradores</span> preautorizados.
         </div>
         <OtherLoginPrompt forRole="admin" className="mt-5" />
       </div>
