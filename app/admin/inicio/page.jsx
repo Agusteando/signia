@@ -1,4 +1,3 @@
-
 import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -11,11 +10,10 @@ import PlantelProgressPanel from "@/components/admin/PlantelProgressPanel";
 import PlantelAdminMatrixCrudClient from "@/components/admin/PlantelAdminMatrixCrudClient";
 import AdminInicioClient from "@/components/admin/AdminInicioClient";
 import { stepsExpediente } from "@/components/stepMetaExpediente";
-import { LightBulbIcon, PencilSquareIcon, Squares2X2Icon } from "@heroicons/react/24/solid";
+import { LightBulbIcon } from "@heroicons/react/24/solid";
 import PlantelSignatureNamesPanel from "@/components/admin/PlantelSignatureNamesPanel";
 import PuestoAdminPanelClient from "@/components/admin/PuestoAdminPanelClient";
 
-// Only non-admin-upload, non-plantel steps (i.e. strictly user-uploaded docs)
 const userChecklistKeys = stepsExpediente.filter(
   s => !s.adminUploadOnly && !s.isPlantelSelection
 ).map(s => s.key);
@@ -54,7 +52,6 @@ export default async function AdminInicioPage({ searchParams }) {
     plantelesScoped = planteles.filter(p => scopedPlantelIds.includes(p.id));
   }
 
-  // Users
   let usersRaw = await prisma.user.findMany({
     where: {
       role: { in: ["employee", "candidate"] },
@@ -155,22 +152,18 @@ export default async function AdminInicioPage({ searchParams }) {
   return (
     <AdminInicioClient session={session} showSidebar={session.role === "superadmin"}>
       <AdminNav session={session} />
-      <main className="flex-1 flex flex-col gap-8 w-full min-w-0 max-w-full pt-24 md:pt-28 pb-6 md:pb-12">
-        <section className="w-full max-w-screen-xl mx-auto px-2 sm:px-4 md:px-7 mb-5">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 bg-yellow-50 border-l-4 border-yellow-400 px-4 py-3 rounded shadow-sm">
-              <LightBulbIcon className="w-7 h-7 text-yellow-400 animate-pulse flex-shrink-0" />
-              <div>
-                <span className="font-bold text-yellow-900">Tip:</span>{" "}
-                <span className="text-yellow-800">
-                  Ahora el estatus de <b>Empleado</b> se asigna automáticamente en cuanto el campo <b>Fecha de ingreso</b> está presente.<br />
-                  No es necesario "aprobar" candidatos manualmente. ¡Más sencillo y rápido!
-                </span>
-              </div>
+      
+      <div className="flex-1 flex flex-col w-full min-w-0 max-w-full pt-6 pb-12">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 px-4 py-3 rounded-xl shadow-sm">
+            <LightBulbIcon className="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-indigo-800">
+              <strong className="font-semibold text-indigo-900">Tip:</strong> Ahora el estatus de <b>Empleado</b> se asigna automáticamente al ingresar la <b>Fecha de ingreso</b>. No es necesario aprobar candidatos manualmente.
             </div>
           </div>
         </section>
-        <section id="dashboard-stats" className="w-full max-w-screen-xl mx-auto px-2 sm:px-4 md:px-7 mb-7">
+
+        <section id="dashboard-stats" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
           <AdminDashboardStats
             summary={{
               userDocsCompleted,
@@ -182,69 +175,28 @@ export default async function AdminInicioPage({ searchParams }) {
             }}
           />
         </section>
-        <section id="user-management" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-          <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-            <UserManagementPanel
-              users={users}
-              planteles={filteredPlanteles}
-              adminRole={session.role}
-              plantelesPermittedIds={session.role === "superadmin" ? planteles.map(p => p.id) : scopedPlantelIds}
-              canAssignPlantel={session.role === "superadmin"}
-            />
-          </div>
-        </section>
-        <section id="plantel-progress" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-          <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-            <PlantelProgressPanel planteles={plantelProgressData} />
-          </div>
-        </section>
-        {session.role === "superadmin" && (
-          <>
-            <section id="puestos-admin" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-              <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-                <div className="flex flex-row items-center justify-between mb-2">
-                  <h3 className="text-xl font-bold text-cyan-900 flex items-center gap-2">
-                    <Squares2X2Icon className="w-5 h-5 text-cyan-600" />
-                    Catálogo de Puestos
-                  </h3>
-                </div>
-                <PuestoAdminPanelClient />
-              </div>
-            </section>
-            <section id="plantel-list-admin" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-              <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-                <PlantelListAdminPanelClient initialPlanteles={planteles} onRefresh={null} />
-              </div>
-            </section>
-            <section id="plantel-signature-names" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-              <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-                <div className="flex flex-row items-center justify-between mb-2">
-                  <h3 className="text-xl font-bold text-cyan-900">Firmas por Plantel</h3>
-                  <a
-                    href="#plantel-signature-names"
-                    className="flex items-center gap-2 bg-cyan-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-full shadow transition text-xs sm:text-base"
-                    style={{ textDecoration: "none" }}
-                  >
-                    <PencilSquareIcon className="w-5 h-5" />
-                    Editar firmas/plantel
-                  </a>
-                </div>
-                <PlantelSignatureNamesPanel />
-              </div>
-            </section>
-            <section id="plantel-admin-matrix" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-              <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-                <PlantelAdminMatrix planteles={planteles} admins={admins} />
-              </div>
-            </section>
-            <section id="plantel-admin-matrix-crud" className="w-full max-w-7xl mx-auto px-1 xs:px-2 sm:px-4 md:px-6 mb-10">
-              <div className="bg-white/90 shadow-xl border border-cyan-200 rounded-2xl overflow-x-auto p-1 xs:p-2 md:p-6">
-                <PlantelAdminMatrixCrudClient />
-              </div>
-            </section>
-          </>
-        )}
-      </main>
+        
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 mb-12">
+          <UserManagementPanel
+            users={users}
+            planteles={filteredPlanteles}
+            adminRole={session.role}
+            plantelesPermittedIds={session.role === "superadmin" ? planteles.map(p => p.id) : scopedPlantelIds}
+            canAssignPlantel={session.role === "superadmin"}
+          />
+          <PlantelProgressPanel planteles={plantelProgressData} />
+          
+          {session.role === "superadmin" && (
+            <>
+              <PuestoAdminPanelClient />
+              <PlantelListAdminPanelClient initialPlanteles={planteles} onRefresh={null} />
+              <PlantelSignatureNamesPanel />
+              <PlantelAdminMatrix planteles={planteles} admins={admins} />
+              <PlantelAdminMatrixCrudClient />
+            </>
+          )}
+        </div>
+      </div>
     </AdminInicioClient>
   );
 }

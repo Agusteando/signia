@@ -147,100 +147,97 @@ export default function GestorAccesosAdmin() {
   };
 
   return (
-    <section className="w-full bg-white border border-slate-200 shadow-sm rounded-2xl p-4 md:p-6 mb-6">
+    <div id="plantel-admin-matrix-crud" className="w-full bg-white border border-slate-200 shadow-sm rounded-xl p-5 md:p-6 mb-6">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
         <div>
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <ShieldCheckIcon className="w-6 h-6 text-blue-600" />
-            Gestión de Accesos y Permisos
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <ShieldCheckIcon className="w-6 h-6 text-indigo-600" />
+            Control de Permisos y Autorizaciones
           </h2>
-          <p className="text-sm text-slate-500 mt-1">Controla qué usuarios tienen acceso al panel de administración y sus permisos.</p>
+          <p className="text-sm text-slate-500 mt-1">Controla quiénes pueden acceder como administradores y en qué planteles operan.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <div className="relative w-full sm:w-auto">
             <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input 
-              placeholder="Buscar administrador..." 
+              placeholder="Buscar..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-64 transition-all" 
+              className="pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full sm:w-64 transition-all" 
             />
           </div>
           <button 
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm w-full sm:w-auto" 
+            className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm w-full sm:w-auto shrink-0" 
             onClick={openAddModal}
           >
-             <UserPlusIcon className="w-5 h-5" />
+             <UserPlusIcon className="w-4 h-4" />
              Nuevo Acceso
           </button>
         </div>
       </header>
 
-      {/* Regla de negocio de visualización rápida para los usuarios */}
-      <div className="mb-5 bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3 text-sm text-blue-800">
-        <InformationCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-600" />
+      <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start gap-3 text-sm text-indigo-800">
+        <InformationCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-indigo-600" />
         <p>
-          <strong>Nota de Seguridad:</strong> Solamente los usuarios listados a continuación tienen permiso para ingresar al Panel de Signia. 
-          Si un empleado intenta acceder y no está en esta lista, su ingreso será denegado automáticamente por protección.
+          <strong>Política de Acceso:</strong> Únicamente los usuarios listados a continuación tienen el privilegio de acceder a este panel. El sistema bloqueará intentos de ingreso desde cuentas no autorizadas.
         </p>
       </div>
       
-      {/* Table Data Render */}
-      <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white">
+      <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">
         <table className="w-full text-left text-sm whitespace-nowrap md:whitespace-normal">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
             <tr>
-              <th className="p-4 md:w-1/3">Usuario Autorizado</th>
-              <th className="p-4 md:w-1/4">Rol y Nivel</th>
+              <th className="p-4 md:w-1/3">Administrador</th>
+              <th className="p-4 md:w-1/4">Rol Operativo</th>
               <th className="p-4 md:w-1/3">Planteles Asignados</th>
-              <th className="p-4 text-right">Acciones</th>
+              <th className="p-4 text-right">Opciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-               <tr><td colSpan="4" className="text-center p-8 text-slate-500 font-medium">Cargando administradores...</td></tr>
+               <tr><td colSpan="4" className="text-center p-8 text-slate-500 font-medium">Cargando catálogo...</td></tr>
             ) : filteredAdmins.length === 0 ? (
-               <tr><td colSpan="4" className="text-center p-8 text-slate-500 font-medium">No se encontraron registros.</td></tr>
+               <tr><td colSpan="4" className="text-center p-8 text-slate-500 font-medium">No se encontraron cuentas activas.</td></tr>
             ) : (
                filteredAdmins.map((user) => (
                  <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                    <td className="p-4">
                      <div className="flex items-center gap-3">
-                       <Image src={user.picture || '/IMAGOTIPO-IECS-IEDIS.png'} alt={user.name} width={36} height={36} className="rounded-full bg-slate-200 object-cover shrink-0 border border-slate-200" />
+                       <Image src={user.picture || '/IMAGOTIPO-IECS-IEDIS.png'} alt={user.name} width={36} height={36} className="rounded-full bg-slate-100 object-cover shrink-0 border border-slate-200 shadow-sm" />
                        <div className="min-w-0">
-                         <div className="font-bold text-slate-800 truncate">{user.name}</div>
-                         <div className="text-xs text-slate-500 truncate">{user.email}</div>
+                         <div className="font-semibold text-slate-900 truncate">{user.name}</div>
+                         <div className="text-xs text-slate-500 truncate mt-0.5">{user.email}</div>
                        </div>
                      </div>
                    </td>
                    <td className="p-4">
                      {user.role === 'superadmin' ? (
-                        <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full text-xs font-bold border border-purple-200">
+                        <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-2.5 py-1 rounded-md text-xs font-semibold border border-purple-200">
                           <ShieldCheckIcon className="w-4 h-4"/> Superadmin
                         </span>
                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-bold border border-blue-200">
-                          <ShieldExclamationIcon className="w-4 h-4"/> Admin
+                        <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-xs font-semibold border border-indigo-200">
+                          <ShieldExclamationIcon className="w-4 h-4"/> Administrador
                         </span>
                      )}
                    </td>
                    <td className="p-4">
                      {user.role === 'superadmin' ? (
-                        <span className="text-xs text-slate-500 italic">Acceso ilimitado y global</span>
+                        <span className="text-xs text-slate-500 font-medium">Acceso irrestricto</span>
                      ) : (
                         <div className="flex flex-wrap gap-1.5">
                           {user.plantelesAdmin.map(p => (
-                             <span key={p.id} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium border border-slate-200">{p.name}</span>
+                             <span key={p.id} className="bg-white text-slate-700 px-2 py-0.5 rounded-md text-[11px] font-medium border border-slate-200 shadow-sm">{p.name}</span>
                           ))}
-                          {user.plantelesAdmin.length === 0 && <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-0.5 rounded">Sin planteles - Restringido</span>}
+                          {user.plantelesAdmin.length === 0 && <span className="text-[11px] text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded-md border border-red-200">Sin planteles - Cuenta inoperante</span>}
                         </div>
                      )}
                    </td>
                    <td className="p-4 text-right">
-                     <button onClick={() => openEditModal(user)} className="text-sm text-blue-600 hover:text-blue-800 font-semibold mr-4 px-2 py-1 rounded hover:bg-blue-50 transition">
+                     <button onClick={() => openEditModal(user)} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium mr-2 px-3 py-1.5 rounded-md hover:bg-indigo-50 transition">
                        Editar Permisos
                      </button>
-                     <button onClick={() => { setUserToRevoke(user); setIsRevokeModalOpen(true); }} className="text-sm text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded hover:bg-red-50 transition">
+                     <button onClick={() => { setUserToRevoke(user); setIsRevokeModalOpen(true); }} className="text-sm text-red-600 hover:text-red-800 font-medium px-3 py-1.5 rounded-md hover:bg-red-50 transition">
                        Revocar
                      </button>
                    </td>
@@ -251,85 +248,85 @@ export default function GestorAccesosAdmin() {
         </table>
       </div>
 
-      {/* MODAL: Edit / Add Admin */}
+      {/* MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-               <h3 className="font-bold text-lg text-slate-800">
-                 {editingUser ? "Editar Permisos de Usuario" : "Otorgar Acceso Administrativo"}
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white">
+               <h3 className="font-semibold text-lg text-slate-900">
+                 {editingUser ? "Configurar Permisos del Usuario" : "Conceder Autorización"}
                </h3>
-               <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 outline-none">
-                 <XMarkIcon className="w-6 h-6" />
+               <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 outline-none rounded-full p-1 hover:bg-slate-100 transition">
+                 <XMarkIcon className="w-5 h-5" />
                </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+            <div className="p-6 overflow-y-auto flex-1 space-y-6 bg-slate-50/50">
                {errorMsg && (
-                 <div className="bg-red-50 text-red-700 text-sm p-3 rounded-lg border border-red-100 font-medium">
+                 <div className="bg-red-50 text-red-700 text-sm p-3 rounded-lg border border-red-200 font-medium">
                    {errorMsg}
                  </div>
                )}
 
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                  <div>
-                   <label className="block text-sm font-semibold text-slate-700 mb-1">Nombre Completo</label>
+                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre Completo</label>
                    <input 
                       value={formName} 
                       onChange={(e) => setFormName(e.target.value)} 
-                      className="w-full border border-slate-200 bg-slate-50 rounded-lg p-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                      className="w-full border border-slate-300 bg-white rounded-md p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition shadow-sm" 
                       placeholder="Ej. Juan Pérez" 
                    />
                  </div>
                  <div>
-                   <label className="block text-sm font-semibold text-slate-700 mb-1">Correo Institucional</label>
+                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Correo Institucional</label>
                    <input 
                       value={formEmail} 
                       onChange={(e) => setFormEmail(e.target.value)} 
                       disabled={!!editingUser}
-                      className="w-full border border-slate-200 bg-slate-50 rounded-lg p-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition disabled:opacity-60 disabled:cursor-not-allowed" 
+                      className="w-full border border-slate-300 bg-white rounded-md p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-slate-100" 
                       placeholder="usuario@casitaiedis.edu.mx" 
                    />
                  </div>
                </div>
 
                <div>
-                 <label className="block text-sm font-semibold text-slate-700 mb-2">Nivel de Acceso</label>
+                 <label className="block text-sm font-medium text-slate-700 mb-2">Nivel de Privilegios</label>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div onClick={() => setFormRole('admin')} className={`border p-4 rounded-xl cursor-pointer transition-all ${formRole==='admin' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 shadow-sm' : 'border-slate-200 hover:bg-slate-50'}`}>
-                      <div className="font-bold text-blue-900 flex items-center gap-2 mb-1">
-                        <ShieldExclamationIcon className="w-5 h-5 text-blue-600" />
-                        Administrador
+                    <div onClick={() => setFormRole('admin')} className={`border p-4 rounded-xl cursor-pointer transition-all ${formRole==='admin' ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-300'}`}>
+                      <div className="font-semibold text-indigo-900 flex items-center gap-2 mb-1.5">
+                        <ShieldExclamationIcon className="w-5 h-5 text-indigo-600" />
+                        Administrador Local
                       </div>
-                      <div className="text-xs text-slate-500 leading-tight">Acceso delimitado. Solo puede operar dentro de los planteles que se le asignen.</div>
+                      <div className="text-xs text-slate-500 leading-relaxed">Su operatividad estará limitada únicamente a los planteles autorizados.</div>
                     </div>
-                    <div onClick={() => setFormRole('superadmin')} className={`border p-4 rounded-xl cursor-pointer transition-all ${formRole==='superadmin' ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500 shadow-sm' : 'border-slate-200 hover:bg-slate-50'}`}>
-                       <div className="font-bold text-purple-900 flex items-center gap-2 mb-1">
+                    <div onClick={() => setFormRole('superadmin')} className={`border p-4 rounded-xl cursor-pointer transition-all ${formRole==='superadmin' ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-slate-200 bg-white hover:border-purple-300'}`}>
+                       <div className="font-semibold text-purple-900 flex items-center gap-2 mb-1.5">
                          <ShieldCheckIcon className="w-5 h-5 text-purple-600" />
-                         Superadmin
+                         Superadmin Global
                        </div>
-                       <div className="text-xs text-slate-500 leading-tight">Acceso global y totalitario. Visibilidad sobre todo el sistema y configuraciones.</div>
+                       <div className="text-xs text-slate-500 leading-relaxed">Acceso maestro a todo el sistema, planteles, roles y configuraciones.</div>
                     </div>
                  </div>
                </div>
                
                {formRole === 'admin' && (
-                  <div className="animate-fade-in pt-1">
+                  <div className="pt-2 animate-fade-in">
                      <div className="flex items-center justify-between mb-2">
-                       <label className="block text-sm font-semibold text-slate-700">Seleccionar Planteles de Acción</label>
+                       <label className="block text-sm font-medium text-slate-700">Asignación de Planteles</label>
                        <div className="flex gap-2">
-                          <button type="button" onClick={handleSelectAll} className="text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-blue-100 px-2 py-1 rounded">Marcar Todos</button>
-                          <button type="button" onClick={handleDeselectAll} className="text-[11px] font-bold text-slate-600 hover:text-slate-800 bg-slate-200 px-2 py-1 rounded">Ninguno</button>
+                          <button type="button" onClick={handleSelectAll} className="text-xs font-medium text-indigo-700 hover:text-indigo-900 bg-indigo-100 px-2 py-1 rounded">Seleccionar todos</button>
+                          <button type="button" onClick={handleDeselectAll} className="text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-200 px-2 py-1 rounded">Limpiar</button>
                        </div>
                      </div>
-                     <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1 bg-slate-50 shadow-inner">
+                     <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1 bg-white shadow-inner">
                         {data.planteles.map(p => (
-                           <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                           <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-slate-100">
                               <input 
                                 type="checkbox" 
                                 checked={formPlanteles.has(p.id)} 
                                 onChange={() => togglePlantel(p.id)} 
-                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" 
+                                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
                               />
                               <span className="text-sm font-medium text-slate-800">{p.name}</span>
                            </label>
@@ -339,44 +336,44 @@ export default function GestorAccesosAdmin() {
                )}
             </div>
             
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-               <button onClick={closeModal} className="px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition">Cancelar</button>
+            <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+               <button onClick={closeModal} className="px-5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-md transition border border-transparent hover:border-slate-200">Cancelar</button>
                <button 
                  onClick={handleSaveUser} 
                  disabled={isSaving || !formEmail.trim() || !formName.trim()} 
-                 className="px-6 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 transition-colors shadow-sm"
+                 className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50 transition-colors shadow-sm"
                >
-                 {isSaving ? "Guardando..." : "Guardar Accesos"}
+                 {isSaving ? "Aplicando cambios..." : "Guardar Autorización"}
                </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL: Revoke Access Warning */}
+      {/* MODAL: Revoke Warning */}
       {isRevokeModalOpen && (
         <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col border border-slate-100">
              <div className="p-6 flex flex-col items-center text-center">
-                <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
-                   <ExclamationTriangleIcon className="w-8 h-8" />
+                <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+                   <ExclamationTriangleIcon className="w-7 h-7" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">¿Revocar Permisos?</h3>
-                <p className="text-sm text-slate-500 mb-1">
-                  Se removerán los privilegios de administrador de <b>{userToRevoke?.name}</b> de manera inmediata.
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">¿Revocar privilegios?</h3>
+                <p className="text-sm text-slate-600 mb-2">
+                  Se anularán los derechos de administrador de <b>{userToRevoke?.name}</b> de forma inmediata.
                 </p>
-                <p className="text-xs text-slate-400">
-                  Su cuenta regresará a ser un empleado estándar y no podrá ingresar a este panel. El historial de expedientes de esta persona no se borrará.
+                <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-md border border-slate-100">
+                  La cuenta volverá al rol estándar y perderá visibilidad del panel. Los expedientes e historial asociados se conservarán intactos.
                 </p>
                 
-                {errorMsg && <div className="mt-3 text-sm text-red-600 font-bold bg-red-50 p-2 rounded">{errorMsg}</div>}
+                {errorMsg && <div className="mt-4 text-sm text-red-700 font-medium bg-red-50 p-2 rounded-md w-full">{errorMsg}</div>}
              </div>
              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex gap-3">
-               <button onClick={() => { setIsRevokeModalOpen(false); setErrorMsg(""); }} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg w-full transition">
-                 Cancelar
+               <button onClick={() => { setIsRevokeModalOpen(false); setErrorMsg(""); }} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-md w-full transition shadow-sm">
+                 Mantener Permisos
                </button>
-               <button onClick={handleRevoke} disabled={isSaving} className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg w-full disabled:opacity-50 transition shadow-sm">
-                 {isSaving ? "Revocando..." : "Sí, Revocar"}
+               <button onClick={handleRevoke} disabled={isSaving} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md w-full disabled:opacity-50 transition shadow-sm">
+                 {isSaving ? "Ejecutando..." : "Sí, Revocar"}
                </button>
              </div>
           </div>
@@ -384,9 +381,9 @@ export default function GestorAccesosAdmin() {
       )}
       
       <style jsx global>{`
-        .animate-fade-in { animation: fadeIn 0.25s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
-    </section>
+    </div>
   );
 }

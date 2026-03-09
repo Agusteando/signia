@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { PlusCircleIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon, ClipboardIcon, CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
@@ -22,7 +21,7 @@ export default function PuestoAdminPanel() {
   const [savingId, setSavingId] = useState(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
-  const [importMode, setImportMode] = useState("merge"); // merge | replace
+  const [importMode, setImportMode] = useState("merge");
   const [importing, setImporting] = useState(false);
 
   async function fetchPuestos() {
@@ -167,74 +166,74 @@ export default function PuestoAdminPanel() {
   }
 
   return (
-    <section className="w-full bg-white border border-cyan-200 shadow-xl rounded-2xl p-4 mb-6">
-      <header className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2 font-bold text-cyan-800 text-lg">
-          Puestos
+    <div id="puestos-admin" className="w-full bg-white border border-slate-200 shadow-sm rounded-xl p-5 mb-6">
+      <header className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2 font-semibold text-slate-900 text-lg">
+          Catálogo de Puestos
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="relative">
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Buscar puesto..."
-              className="border border-cyan-200 rounded-full px-3 py-2 text-sm w-[200px]"
+              className="border border-slate-300 rounded-md px-3 py-1.5 text-sm w-[200px] focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow bg-white"
               aria-label="Buscar puesto"
             />
           </div>
           <button
-            className="flex items-center gap-1 px-3 py-1.5 bg-cyan-700 hover:bg-cyan-900 text-white text-xs rounded-full shadow font-bold"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm rounded-md shadow-sm font-medium transition"
             onClick={() => setImportOpen(true)}
             type="button"
           >
-            <ClipboardIcon className="w-5 h-5" />
+            <ClipboardIcon className="w-4 h-4 text-slate-400" />
             Importar/pegar
           </button>
           <button
-            className="flex items-center px-2 py-1.5 border border-cyan-300 rounded text-xs hover:bg-cyan-50"
+            className="flex items-center px-2 py-1.5 border border-slate-300 rounded-md text-sm hover:bg-slate-50 bg-white transition"
             onClick={fetchPuestos}
             type="button"
             title="Recargar"
           >
-            <ArrowPathIcon className="w-4 h-4 text-cyan-600" />
+            <ArrowPathIcon className="w-4 h-4 text-slate-500" />
           </button>
         </div>
       </header>
 
       {(msg || err) && (
-        <div className={`mb-2 text-center text-xs font-semibold ${err ? "text-red-700" : "text-emerald-800"}`}>
+        <div className={`mb-3 text-center text-xs font-medium px-3 py-1.5 rounded-md border ${err ? "bg-red-50 text-red-700 border-red-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
           {err || msg}
         </div>
       )}
 
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto border border-slate-200 rounded-xl">
         {loading ? (
-          <div className="text-center p-6 text-gray-500 font-bold">Cargando…</div>
+          <div className="text-center p-6 text-slate-500 font-medium text-sm">Cargando…</div>
         ) : (
-          <table className="min-w-full table-auto border rounded-xl text-xs sm:text-sm">
+          <table className="min-w-full table-auto text-xs sm:text-sm">
             <thead>
-              <tr className="bg-cyan-50 border-b border-cyan-100">
-                <th className="px-3 py-2 text-left">Nombre</th>
-                <th className="px-3 py-2 text-left">Estatus</th>
-                <th className="px-3 py-2 text-left">Acciones</th>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-4 py-3 text-left font-semibold text-slate-600">Nombre</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600">Estatus</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="bg-emerald-50 border-b border-emerald-100">
-                <td className="px-3 py-2">
-                  <form onSubmit={handleAdd} className="flex gap-2 items-center">
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <td className="px-4 py-2" colSpan={3}>
+                  <form onSubmit={handleAdd} className="flex gap-2 items-center w-full max-w-sm">
                     <input
                       type="text"
                       placeholder="Agregar nuevo puesto…"
                       value={newName}
                       onChange={e => setNewName(e.target.value)}
-                      className="rounded border border-emerald-200 px-2 py-1 w-full"
+                      className="rounded-md border border-slate-300 px-3 py-1.5 w-full bg-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none"
                       maxLength={80}
                       disabled={adding}
                     />
                     <button
                       type="submit"
-                      className="flex items-center gap-1 px-3 py-1 bg-emerald-700 hover:bg-emerald-900 text-white rounded-full text-xs font-bold disabled:opacity-60"
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-medium disabled:opacity-50 transition shadow-sm"
                       disabled={adding || !newName.trim()}
                     >
                       <PlusCircleIcon className="w-4 h-4" />
@@ -242,35 +241,33 @@ export default function PuestoAdminPanel() {
                     </button>
                   </form>
                 </td>
-                <td className="px-3 py-2"></td>
-                <td className="px-3 py-2"></td>
               </tr>
               {filtered.map(p => (
-                <tr key={p.id} className="border-b border-cyan-50">
-                  <td className="px-3 py-2">
+                <tr key={p.id} className="border-b border-slate-100 bg-white hover:bg-slate-50 transition">
+                  <td className="px-4 py-3">
                     <InlineEditable
                       value={p.name}
                       onSave={(val) => rename(p, val)}
                       disabled={savingId === p.id}
                     />
                   </td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${p.active ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"}`}>
-                      {p.active ? <CheckCircleIcon className="w-4 h-4" /> : <XMarkIcon className="w-4 h-4" />}
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border ${p.active ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                      {p.active ? <CheckCircleIcon className="w-3.5 h-3.5" /> : <XMarkIcon className="w-3.5 h-3.5" />}
                       {p.active ? "Activo" : "Inactivo"}
                     </span>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3">
                     <div className="flex gap-2 items-center">
                       <button
-                        className={`px-3 py-1 rounded-full text-xs font-bold border ${p.active ? "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200" : "bg-emerald-700 text-white border-emerald-700 hover:bg-emerald-900"}`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium border transition ${p.active ? "bg-white border-slate-300 text-slate-700 hover:bg-slate-50" : "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"}`}
                         onClick={() => toggleActive(p, !p.active)}
                         disabled={savingId === p.id}
                       >
                         {p.active ? "Desactivar" : "Activar"}
                       </button>
                       <button
-                        className="px-3 py-1 rounded-full text-xs font-bold bg-red-700 hover:bg-red-900 text-white"
+                        className="px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-red-200 text-red-600 hover:bg-red-50 transition"
                         onClick={() => remove(p)}
                         disabled={savingId === p.id}
                       >
@@ -283,7 +280,7 @@ export default function PuestoAdminPanel() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td className="px-3 py-4 text-center text-slate-500" colSpan={3}>Sin resultados</td>
+                  <td className="px-4 py-6 text-center text-slate-500 bg-white" colSpan={3}>No hay puestos que coincidan con la búsqueda.</td>
                 </tr>
               )}
             </tbody>
@@ -292,24 +289,25 @@ export default function PuestoAdminPanel() {
       </div>
 
       {importOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-[95vw] max-w-2xl border border-cyan-100 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl border border-slate-200 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-bold text-lg text-cyan-800">Importar puestos</h3>
+              <h3 className="font-semibold text-lg text-slate-900">Importar lista de Puestos</h3>
               <button
-                className="text-xs rounded-full px-3 py-1 bg-slate-100 hover:bg-slate-200"
+                className="text-slate-400 hover:text-slate-600 rounded-full p-1.5 hover:bg-slate-100 transition"
                 onClick={() => setImportOpen(false)}
                 type="button"
+                aria-label="Cerrar"
               >
-                Cerrar
+                <XMarkIcon className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-slate-600 mb-2">
-              Pega una lista de puestos, separados por líneas o comas. Usa "Reemplazar" para sustituir completamente la lista (los que no estén se desactivarán).
+            <p className="text-sm text-slate-500 mb-4">
+              Pega una lista de puestos, separados por líneas o comas. Usa "Reemplazar todo" para sustituir la lista actual (los que no estén se desactivarán).
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <textarea
-                className="w-full min-h-[180px] rounded-lg border border-cyan-200 p-2 text-sm"
+                className="w-full min-h-[180px] rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
                 placeholder="Ejemplo:
@@ -317,32 +315,32 @@ DIRECTOR ESCOLAR
 COORDINADOR PEDAGÓGICO
 DOCENTE"
               />
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-4 border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs font-semibold">Modo:</label>
+                  <label className="text-sm font-medium text-slate-700">Modo:</label>
                   <select
                     value={importMode}
                     onChange={e => setImportMode(e.target.value)}
-                    className="rounded border border-cyan-200 px-2 py-1 text-xs"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
-                    <option value="merge">Actualizar (merge)</option>
+                    <option value="merge">Actualizar e integrar (Merge)</option>
                     <option value="replace">Reemplazar todo</option>
                   </select>
                 </div>
                 <button
-                  className="text-xs rounded-full px-3 py-1 border border-cyan-200 hover:bg-cyan-50"
+                  className="text-xs rounded-md px-3 py-1.5 border border-slate-300 hover:bg-slate-50 font-medium text-slate-700 transition"
                   onClick={copyTemplate}
                   type="button"
                 >
                   Usar ejemplo
                 </button>
-                <span className="text-xs text-slate-600">
-                  Detectados: <b>{normalizeListInput(importText).length}</b>
+                <span className="text-sm text-slate-600 ml-auto">
+                  Puestos detectados: <b className="text-slate-900">{normalizeListInput(importText).length}</b>
                 </span>
               </div>
-              <div className="flex items-center justify-end gap-2 mt-2">
+              <div className="flex items-center justify-end gap-3 pt-2">
                 <button
-                  className="text-xs rounded-full px-3 py-1 bg-slate-100 hover:bg-slate-200"
+                  className="text-sm font-medium rounded-md px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
                   onClick={() => setImportOpen(false)}
                   type="button"
                   disabled={importing}
@@ -350,19 +348,19 @@ DOCENTE"
                   Cancelar
                 </button>
                 <button
-                  className={`text-xs rounded-full px-4 py-2 text-white font-bold ${importMode === "replace" ? "bg-red-700 hover:bg-red-900" : "bg-cyan-700 hover:bg-cyan-900"}`}
+                  className={`text-sm font-medium rounded-md px-5 py-2 text-white shadow-sm transition ${importMode === "replace" ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
                   onClick={doImport}
                   type="button"
                   disabled={importing || normalizeListInput(importText).length === 0}
                 >
-                  {importing ? "Importando…" : importMode === "replace" ? "Reemplazar" : "Actualizar"}
+                  {importing ? "Procesando…" : importMode === "replace" ? "Reemplazar" : "Actualizar"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -383,21 +381,21 @@ function InlineEditable({ value, onSave, disabled }) {
           <input
             value={v}
             onChange={e => setV(e.target.value)}
-            className="rounded border border-cyan-200 px-2 py-1 text-sm w-full"
+            className="rounded-md border border-slate-300 px-2 py-1.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
             onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") { setV(value); setEditing(false); } }}
             maxLength={80}
             autoFocus
             disabled={disabled}
           />
           <button
-            className="px-2 py-1 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-800"
+            className="px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm"
             onClick={submit}
             disabled={disabled}
           >
             Guardar
           </button>
           <button
-            className="px-2 py-1 text-xs rounded bg-slate-100 hover:bg-slate-200"
+            className="px-3 py-1.5 text-xs font-medium rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 transition"
             onClick={() => { setV(value); setEditing(false); }}
             disabled={disabled}
           >
@@ -406,12 +404,12 @@ function InlineEditable({ value, onSave, disabled }) {
         </>
       ) : (
         <>
-          <span className="font-semibold text-cyan-900">{value}</span>
+          <span className="font-medium text-slate-900">{value}</span>
           <button
-            className="px-2 py-1 text-xs rounded bg-slate-100 hover:bg-slate-200"
+            className="p-1.5 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition"
             onClick={() => setEditing(true)}
             disabled={disabled}
-            title="Editar"
+            title="Editar nombre"
           >
             <PencilSquareIcon className="w-4 h-4" />
           </button>

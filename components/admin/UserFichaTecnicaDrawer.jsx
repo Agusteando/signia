@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
@@ -22,7 +21,6 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 
-// Dynamic Puestos: load active from API for select
 const FIELDS = [
   { key: "rfc", label: "RFC", icon: IdentificationIcon },
   { key: "curp", label: "CURP", icon: KeyIcon },
@@ -45,7 +43,7 @@ export default function UserFichaTecnicaDrawer({
   canEdit = false,
   editablePlanteles = [],
   onClose,
-  isSuperadmin = false // not used now, manual entry removed
+  isSuperadmin = false
 }) {
   const [ficha, setFicha] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,22 +51,20 @@ export default function UserFichaTecnicaDrawer({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // For downloads
   const [pdfDownloading, setPdfDownloading] = useState(false);
   const [zipDownloading, setZipDownloading] = useState(false);
   const [zipQueued, setZipQueued] = useState(false);
 
-  // Dynamic puestos
   const [puestos, setPuestos] = useState([]);
   const [puestosLoading, setPuestosLoading] = useState(false);
 
-  // Searchable dropdown state
   const [puestoOpen, setPuestoOpen] = useState(false);
   const [puestoFilter, setPuestoFilter] = useState("");
   const [puestoActiveIndex, setPuestoActiveIndex] = useState(-1);
   const puestoInputRef = useRef(null);
   const puestoListRef = useRef(null);
   const puestoButtonRef = useRef(null);
+  const dropdownWrapperRef = useRef(null);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -109,9 +105,7 @@ export default function UserFichaTecnicaDrawer({
         const r = await fetch("/api/admin/puestos/list?active=1", { cache: "no-store" });
         const d = await r.json();
         if (r.ok) setPuestos(d.puestos || []);
-      } catch {
-        // ignore
-      }
+      } catch { }
       setPuestosLoading(false);
     }
     loadPuestos();
@@ -126,7 +120,6 @@ export default function UserFichaTecnicaDrawer({
     setError(""); setSuccess("");
   }
 
-  // Progress
   const filledCount = ficha
     ? FIELDS.filter(({ key }) => (ficha[key] && String(ficha[key]).trim() !== "")).length
     : 0;
@@ -199,19 +192,12 @@ export default function UserFichaTecnicaDrawer({
     }
   }
 
-  // ---- Searchable Select for Puestos (no manual entry) ----
   const puestosFiltered = useMemo(() => {
     const q = puestoFilter.trim().toLowerCase();
     const list = Array.isArray(puestos) ? puestos : [];
     if (!q) return list;
     return list.filter(p => p.name.toLowerCase().includes(q));
   }, [puestos, puestoFilter]);
-
-  const selectedPuestoInCatalog = useMemo(() => {
-    const v = (ficha?.puesto || "").trim();
-    if (!v) return null;
-    return puestos.find(p => p.name === v) || null;
-  }, [ficha?.puesto, puestos]);
 
   const isPuestoOutOfCatalog = useMemo(() => {
     const v = (ficha?.puesto || "").trim();
@@ -224,7 +210,6 @@ export default function UserFichaTecnicaDrawer({
     setPuestoActiveIndex(-1);
   }, []);
 
-  // Keyboard navigation
   function handlePuestoKeyDown(e) {
     if (!puestoOpen) {
       if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
@@ -284,8 +269,6 @@ export default function UserFichaTecnicaDrawer({
     }
   }
 
-  // Click outside to close
-  const dropdownWrapperRef = useRef(null);
   useEffect(() => {
     function onDocClick(e) {
       if (!puestoOpen) return;
@@ -300,60 +283,68 @@ export default function UserFichaTecnicaDrawer({
   if (!open || !user) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex justify-end">
-      <div className="w-full max-w-md h-full bg-white shadow-2xl overflow-y-scroll border-l border-cyan-200 px-0 pt-0 relative">
+    <div className="fixed inset-0 z-[70] bg-slate-900/40 backdrop-blur-sm flex justify-end">
+      <div className="w-full max-w-md h-full bg-white shadow-2xl overflow-y-scroll border-l border-slate-200 px-0 pt-0 relative">
         <button
-          className="absolute right-3 top-3 text-cyan-800 font-bold rounded-full bg-cyan-50 p-2"
+          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 rounded-full p-1.5 bg-slate-100 hover:bg-slate-200 transition"
           onClick={onClose}
           aria-label="Cerrar"
-        >✕</button>
-        <div className="p-6 pb-2 flex items-center gap-3 border-b border-cyan-100">
+        >
+          <XMarkIcon className="w-5 h-5" />
+        </button>
+        
+        <div className="p-6 pb-5 flex items-center gap-4 border-b border-slate-100">
           <Image
             src={user.picture || "/IMAGOTIPO-IECS-IEDIS.png"}
-            width={48}
-            height={48}
+            width={52}
+            height={52}
             alt=""
-            className="rounded-full bg-white border border-cyan-100"
+            className="rounded-full bg-slate-100 border border-slate-200 shadow-sm shrink-0 object-cover"
           />
           <div>
-            <div className="font-bold text-cyan-900">{user.name}</div>
-            <div className="text-xs text-slate-400">{user.email}</div>
-            <div className="text-xs font-bold text-cyan-600 mt-1">
+            <div className="font-semibold text-slate-900 leading-tight truncate">{user.name}</div>
+            <div className="text-xs text-slate-500 truncate mb-1.5">{user.email}</div>
+            <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-medium border ${
+              user.role === "employee" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-indigo-50 text-indigo-700 border-indigo-200"
+            }`}>
               {user.role === "employee" ? "Empleado" : "Candidato"}
-            </div>
+            </span>
           </div>
         </div>
-        <form className="px-6 py-4 flex flex-col gap-3" onSubmit={handleSave}>
-          <h2 className="font-bold text-lg text-cyan-900 mt-1 mb-3">Ficha técnica del empleado</h2>
+        
+        <form className="px-6 py-5 flex flex-col gap-4" onSubmit={handleSave}>
+          <h2 className="font-semibold text-base text-slate-900">Detalles de Ficha Técnica</h2>
+          
           {isLoading || !ficha ? (
-            <div className="text-slate-400 py-6 text-center">Cargando...</div>
+            <div className="text-slate-500 py-10 text-sm font-medium text-center">Cargando datos del colaborador...</div>
           ) : (
             <>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-xs font-bold text-cyan-800">
-                  Progreso ficha: {filledCount} / {FIELDS.length}
+              <div className="flex items-center gap-3 mb-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span className="text-xs font-semibold text-slate-700">
+                  Completitud
                 </span>
                 <div className="flex-1">
-                  <div className="w-full h-2 rounded-full bg-cyan-100">
+                  <div className="w-full h-1.5 rounded-full bg-slate-200">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        fichaPct > 90 ? "bg-emerald-400" : fichaPct > 50 ? "bg-cyan-400" : "bg-yellow-400"
+                        fichaPct > 90 ? "bg-emerald-500" : fichaPct > 50 ? "bg-indigo-500" : "bg-amber-400"
                       }`}
                       style={{ width: `${fichaPct}%` }}
                     />
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-slate-500">{fichaPct}%</span>
+                <span className="text-xs font-medium text-slate-500">{fichaPct}%</span>
               </div>
-              <div className="grid grid-cols-1 gap-y-3">
+              
+              <div className="grid grid-cols-1 gap-y-4">
                 {FIELDS.map(f =>
                   <div key={f.key}>
-                    <label className="font-semibold text-xs text-cyan-700 flex items-center gap-1">
-                      <f.icon className="w-4 h-4" /> {f.label}
+                    <label className="font-medium text-xs text-slate-600 flex items-center gap-1.5 mb-1.5">
+                      <f.icon className="w-4 h-4 text-slate-400" /> {f.label}
                     </label>
                     {f.key === "fechaIngreso" || f.key === "fechaBajaSustituido" ? (
                       <input
-                        className="w-full rounded-lg border border-cyan-200 px-3 py-2 text-base bg-white"
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                         name={f.key}
                         type="date"
                         value={ficha[f.key]}
@@ -366,7 +357,7 @@ export default function UserFichaTecnicaDrawer({
                         value={ficha.plantelId || ""}
                         onChange={handlePlantelChange}
                         disabled={!canEdit || isSaving}
-                        className="w-full rounded-lg border border-cyan-200 px-3 py-2 text-base bg-white"
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                       >
                         <option value="">Seleccionar plantel...</option>
                         {(canEdit ? editablePlanteles : planteles).map(p =>
@@ -375,7 +366,6 @@ export default function UserFichaTecnicaDrawer({
                       </select>
                     ) : f.key === "puesto" ? (
                       <div ref={dropdownWrapperRef} className="relative">
-                        {/* Selected button */}
                         <button
                           type="button"
                           ref={puestoButtonRef}
@@ -389,54 +379,51 @@ export default function UserFichaTecnicaDrawer({
                           onKeyDown={handlePuestoKeyDown}
                           disabled={!canEdit || isSaving || puestosLoading}
                           className={classNames(
-                            "w-full inline-flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-base bg-white",
-                            canEdit && !isSaving ? "border-cyan-200 hover:bg-cyan-50" : "border-slate-200 text-slate-500 cursor-not-allowed"
+                            "w-full inline-flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm shadow-sm transition",
+                            canEdit && !isSaving ? "border-slate-300 bg-white hover:bg-slate-50 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                           )}
                           aria-haspopup="listbox"
                           aria-expanded={puestoOpen}
                           aria-controls="puesto-listbox"
                         >
-                          <span className="truncate text-left">
+                          <span className="truncate text-left text-slate-700">
                             {ficha.puesto
                               ? ficha.puesto
-                              : (puestosLoading ? "Cargando puestos..." : "Seleccionar puesto…")}
+                              : (puestosLoading ? "Cargando catálogo..." : "Seleccionar de la lista...")}
                           </span>
-                          <ChevronUpDownIcon className="w-5 h-5 text-slate-500" />
+                          <ChevronUpDownIcon className="w-5 h-5 text-slate-400" />
                         </button>
 
-                        {/* Out-of-catalog warning */}
                         {ficha.puesto && isPuestoOutOfCatalog && (
-                          <div className="mt-1 text-[11px] flex items-start gap-1 text-yellow-800 bg-yellow-50 border border-yellow-200 rounded px-2 py-1">
+                          <div className="mt-2 text-xs flex items-start gap-1.5 text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
                             <ExclamationTriangleIcon className="w-4 h-4 shrink-0 mt-0.5" />
                             <span>
-                              El puesto seleccionado no está en el catálogo activo. Puedes conservarlo tal cual o elegir uno del catálogo.
-                              Si necesitas editar el catálogo, solicita a un superadmin.
+                              Este puesto no figura en el catálogo actual. Puedes conservarlo o elegir uno válido de la lista.
                             </span>
                           </div>
                         )}
 
-                        {/* Dropdown */}
                         {puestoOpen && (
-                          <div className="absolute z-10 mt-1 w-full bg-white border border-cyan-200 rounded-xl shadow-xl">
-                            <div className="p-2 border-b border-cyan-100 bg-cyan-50/40">
+                          <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden">
+                            <div className="p-2 border-b border-slate-100 bg-slate-50">
                               <div className="relative">
-                                <MagnifyingGlassIcon className="w-4 h-4 text-cyan-400 absolute left-2 top-2.5" />
+                                <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
                                 <input
                                   ref={puestoInputRef}
                                   value={puestoFilter}
                                   onChange={e => { setPuestoFilter(e.target.value); setPuestoActiveIndex(0); }}
                                   onKeyDown={handlePuestoKeyDown}
                                   placeholder="Buscar puesto…"
-                                  className="w-full pl-7 pr-2 py-2 rounded border border-cyan-200 text-sm bg-white"
+                                  className="w-full pl-8 pr-8 py-2 rounded-md border border-slate-300 text-sm bg-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                                 />
                                 {puestoFilter && (
                                   <button
                                     type="button"
-                                    className="absolute right-2 top-1.5 p-1 rounded-full hover:bg-slate-100"
+                                    className="absolute right-2 top-2 p-1 rounded-md hover:bg-slate-100 transition"
                                     onClick={() => { setPuestoFilter(""); setPuestoActiveIndex(0); puestoInputRef.current?.focus(); }}
                                     aria-label="Limpiar"
                                   >
-                                    <XMarkIcon className="w-4 h-4 text-slate-500" />
+                                    <XMarkIcon className="w-4 h-4 text-slate-400" />
                                   </button>
                                 )}
                               </div>
@@ -449,7 +436,7 @@ export default function UserFichaTecnicaDrawer({
                               aria-label="Opciones de puesto"
                             >
                               {puestosFiltered.length === 0 && (
-                                <li className="px-3 py-2 text-sm text-slate-500">Sin coincidencias</li>
+                                <li className="px-4 py-3 text-sm text-slate-500 text-center">Sin resultados</li>
                               )}
                               {puestosFiltered.map((p, idx) => {
                                 const selected = ficha.puesto === p.name;
@@ -461,9 +448,9 @@ export default function UserFichaTecnicaDrawer({
                                     aria-selected={selected}
                                     data-index={idx}
                                     className={classNames(
-                                      "px-3 py-2 cursor-pointer flex items-center justify-between",
-                                      active ? "bg-cyan-50" : "",
-                                      selected ? "font-semibold text-cyan-800" : "text-slate-800"
+                                      "px-4 py-2 cursor-pointer flex items-center justify-between text-sm transition-colors",
+                                      active ? "bg-slate-50" : "",
+                                      selected ? "font-semibold text-indigo-700 bg-indigo-50/50" : "text-slate-700 hover:bg-slate-50"
                                     )}
                                     onMouseEnter={() => setPuestoActiveIndex(idx)}
                                     onClick={() => {
@@ -473,22 +460,22 @@ export default function UserFichaTecnicaDrawer({
                                     }}
                                   >
                                     <span className="truncate">{p.name}</span>
-                                    {selected && <CheckCircleIcon className="w-4 h-4 text-emerald-600" />}
+                                    {selected && <CheckCircleIcon className="w-4 h-4 text-indigo-600" />}
                                   </li>
                                 );
                               })}
                             </ul>
-                            <div className="flex items-center justify-between gap-2 px-2 py-2 border-t border-cyan-100 bg-slate-50/60">
+                            <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-t border-slate-100 bg-slate-50">
                               <button
                                 type="button"
-                                className="text-xs px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200"
+                                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
                                 onClick={() => { setPuestoFilter(""); closePuestoDropdown(); puestoButtonRef.current?.focus(); }}
                               >
-                                Cerrar
+                                Cancelar
                               </button>
                               <button
                                 type="button"
-                                className="text-xs px-3 py-1 rounded-full bg-white border border-slate-200 hover:bg-slate-100"
+                                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
                                 onClick={() => {
                                   setFicha(f => ({ ...f, puesto: "" }));
                                   setPuestoFilter("");
@@ -497,7 +484,7 @@ export default function UserFichaTecnicaDrawer({
                                 }}
                                 disabled={!canEdit || isSaving}
                               >
-                                Quitar selección
+                                Limpiar selección
                               </button>
                             </div>
                           </div>
@@ -505,7 +492,7 @@ export default function UserFichaTecnicaDrawer({
                       </div>
                     ) : (
                       <input
-                        className="w-full rounded-lg border border-cyan-200 px-3 py-2 text-base bg-white"
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                         name={f.key}
                         value={ficha[f.key]}
                         onChange={handleChange}
@@ -515,42 +502,49 @@ export default function UserFichaTecnicaDrawer({
                   </div>
                 )}
               </div>
-              <div className="flex flex-col md:flex-row gap-3 mt-7">
+              
+              <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-slate-100">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-full bg-fuchsia-700 hover:bg-fuchsia-900 text-white font-bold shadow transition text-sm disabled:opacity-70"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium shadow-sm transition text-sm disabled:opacity-60"
                   onClick={downloadFichaPdf}
                   disabled={pdfDownloading || isSaving}
                 >
-                  <ArrowDownTrayIcon className="w-5 h-5" />
-                  {pdfDownloading ? "Descargando PDF..." : "Descargar ficha PDF"}
+                  <ArrowDownTrayIcon className="w-4 h-4" />
+                  {pdfDownloading ? "Exportando..." : "Descargar PDF Ficha Técnica"}
                 </button>
                 <button
                   type="button"
-                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-full bg-cyan-700 hover:bg-cyan-900 text-white font-bold shadow transition text-sm disabled:opacity-70 ${zipQueued ? "cursor-wait" : ""}`}
+                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium shadow-sm transition text-sm disabled:opacity-60 ${zipQueued ? "cursor-wait" : ""}`}
                   onClick={downloadTodoZip}
                   disabled={zipDownloading || zipQueued || isSaving}
                 >
-                  <ArrowDownOnSquareStackIcon className="w-5 h-5" />
-                  {zipDownloading ? "Descargando ZIP..." : zipQueued ? "En cola…" : "Descargar todo ZIP"}
+                  <ArrowDownOnSquareStackIcon className="w-4 h-4" />
+                  {zipDownloading ? "Empaquetando ZIP..." : zipQueued ? "Procesando en cola…" : "Descargar Expediente Completo"}
                 </button>
               </div>
+              
               {error && (
-                <div className="mt-4 px-3 py-2 rounded-lg bg-red-100 text-red-700 font-semibold text-center">{error}</div>
+                <div className="mt-4 px-4 py-2.5 rounded-md bg-red-50 text-red-700 text-sm font-medium flex items-center gap-2">
+                  <ExclamationTriangleIcon className="w-5 h-5 shrink-0" /> {error}
+                </div>
               )}
               {success && (
-                <div className="mt-4 px-3 py-2 rounded-lg bg-green-100 text-emerald-800 font-semibold text-center">{success}</div>
+                <div className="mt-4 px-4 py-2.5 rounded-md bg-emerald-50 text-emerald-800 text-sm font-medium flex items-center gap-2">
+                  <CheckCircleIcon className="w-5 h-5 shrink-0 text-emerald-600" /> {success}
+                </div>
               )}
+              
               {!canEdit && (
-                <div className="mt-4 text-xs text-cyan-700 font-semibold text-center">Sólo lectura</div>
+                <div className="mt-4 text-xs text-slate-500 font-medium text-center bg-slate-50 p-2 rounded-md">Visualización en modo lectura</div>
               )}
               {canEdit && (
                 <button
                   type="submit"
-                  className="mt-7 py-3 rounded-full w-full bg-gradient-to-r from-cyan-700 to-teal-600 text-white font-extrabold shadow-lg text-base hover:from-emerald-700 hover:to-cyan-800"
+                  className="mt-6 py-2.5 rounded-md w-full bg-indigo-600 text-white font-medium shadow-sm text-sm hover:bg-indigo-700 transition-colors disabled:opacity-60"
                   disabled={isSaving}
                 >
-                  {isSaving ? "Guardando..." : "Guardar ficha técnica"}
+                  {isSaving ? "Guardando cambios..." : "Guardar Ficha Técnica"}
                 </button>
               )}
             </>
