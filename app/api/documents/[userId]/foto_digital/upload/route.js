@@ -1,8 +1,5 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import fs from "fs/promises";
-import path from "path";
 import { nanoid } from "nanoid";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/nextauth-options";
@@ -41,13 +38,24 @@ export async function POST(req, context) {
     return NextResponse.json({ error: "Imagen demasiado grande (>5MB)" }, { status: 400 });
   }
   const ext = file.type === "image/png" ? ".png" : ".jpg";
-
-  const folder = path.join(process.cwd(), "storage", "documents", String(userIdInt));
-  await fs.mkdir(folder, { recursive: true });
   const fname = `foto_digital-${Date.now()}-${nanoid(8)}${ext}`;
-  const dest = path.join(folder, fname);
 
-  await fs.writeFile(dest, fileBuff);
+  // HTTP upload to storage server
+  const outFormData = new FormData();
+  outFormData.append("file", new Blob([fileBuff], { type: file.type }), fname);
+  outFormData.append("folder", `documents/${userIdInt}`);
+  outFormData.append("path", `documents/${userIdInt}`);
+
+  try {
+    const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+      method: "POST",
+      body: outFormData
+    });
+    if (!uploadRes.ok) throw new Error("Storage server upload error");
+  } catch (err) {
+    console.error("[foto_digital upload] Error", err);
+    return NextResponse.json({ error: "Error al guardar la imagen." }, { status: 500 });
+  }
 
   // Only one avatar: update user.picture; also store as a Document
   const url = `/storage/documents/${userIdInt}/${fname}`;

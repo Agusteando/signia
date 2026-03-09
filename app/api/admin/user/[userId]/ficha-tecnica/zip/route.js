@@ -1,11 +1,9 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import archiver from "archiver";
 import { getSessionFromCookies } from "@/lib/auth";
 import path from "path";
-import fs from "fs/promises";
 import stream from "stream";
 import { promisify } from "util";
 const pipeline = promisify(stream.pipeline);
@@ -57,6 +55,14 @@ async function createFichaPDF(user) {
   return Buffer.from(await doc.save());
 }
 
+function getStorageUrl(filePath) {
+  let clean = filePath.replace(/^\/+/, "");
+  if (clean.startsWith("storage/")) {
+    clean = clean.substring("storage/".length);
+  }
+  return `https://expediente.casitaapps.com/${clean}`;
+}
+
 export async function GET(req, context) {
   const params = await context.params;
   const { userId } = params;
@@ -64,13 +70,11 @@ export async function GET(req, context) {
   if (!session || !["superadmin", "admin"].includes(session.role))
     return new NextResponse("No autorizado", { status: 403 });
 
-  // Only allow one job per user at a time (short-lived! - per user)
   if (zipLocks.has(userId)) {
     return new NextResponse("Download en cola", { status: 429 });
   }
   const lock = (async () => {
     try {
-      // Fetch user info
       const user = await prisma.user.findUnique({
         where: { id: parseInt(userId, 10) },
         select: {
@@ -82,35 +86,33 @@ export async function GET(req, context) {
       });
       if (!user) throw new Error("Usuario no encontrado");
 
-      // Fetch docs
       const docs = await prisma.document.findMany({
         where: { userId: parseInt(userId, 10) },
         orderBy: { uploadedAt: "asc" }
       });
 
-      // Prepare ZIP as a PassThrough stream
       const zipStream = new stream.PassThrough();
       const archive = archiver("zip", { zlib: { level: 9 } });
       archive.pipe(zipStream);
 
-      // Add ficha.pdf
       const fichaPdf = await createFichaPDF(user);
       archive.append(fichaPdf, { name: "FichaTecnica.pdf" });
 
-      // Add each document file
       for (const doc of docs) {
         try {
-          let full = doc.filePath.startsWith("/")
-            ? path.join(process.cwd(), doc.filePath)
-            : doc.filePath;
+          const fileUrl = getStorageUrl(doc.filePath);
+          const res = await fetch(fileUrl);
+          if (!res.ok) continue;
+          
+          const buffer = Buffer.from(await res.arrayBuffer());
           const fname = `${doc.type}_v${doc.version}_${path.basename(doc.filePath)}`;
-          await fs.access(full);
-          archive.file(full, { name: `Documentos/${fname}` });
-        } catch (e) {}
+          archive.append(buffer, { name: `Documentos/${fname}` });
+        } catch (e) {
+          console.error("Error fetching file for zip", e);
+        }
       }
       await archive.finalize();
 
-      // Stream response
       return new NextResponse(zipStream, {
         status: 200,
         headers: {

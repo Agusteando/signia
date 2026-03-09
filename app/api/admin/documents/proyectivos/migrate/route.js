@@ -1,15 +1,13 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSessionFromCookies } from "@/lib/auth";
-import fs from "fs/promises";
 import path from "path";
 
 export const runtime = "nodejs";
 
 export async function POST(req, context) {
   const params = await context.params;
-  void params; // No dynamic params for this endpoint; kept for convention.
+  void params;
 
   const session = await getSessionFromCookies(req.cookies);
   if (!session || session.role !== "superadmin") {
@@ -17,7 +15,7 @@ export async function POST(req, context) {
   }
 
   try {
-    console.log("[migrate-proyectivos] Starting migration from /uploads to /storage/documents");
+    console.log("[migrate-proyectivos] Starting migration from /uploads to external /storage/documents");
 
     const docs = await prisma.document.findMany({
       where: {
@@ -34,11 +32,6 @@ export async function POST(req, context) {
       },
     });
 
-    // Legacy root where old proyectivos lived: ./uploads
-    const legacyUploadsRoot = path.join(process.cwd(), "uploads");
-    // Canonical root for all documents: ./storage/documents
-    const storageRoot = path.join(process.cwd(), "storage");
-
     let migrated = 0;
     let skippedMissingFile = 0;
     let copyErrors = 0;
@@ -49,75 +42,45 @@ export async function POST(req, context) {
       const relativeOld = rawPath.replace(/^\/+/, ""); // strip leading slash
 
       if (!relativeOld.startsWith("uploads")) {
-        console.log("[migrate-proyectivos] Skipping non-uploads filePath", {
-          documentId: doc.id,
-          userId: doc.userId,
-          filePath: doc.filePath,
-        });
+        console.log("[migrate-proyectivos] Skipping non-uploads filePath", { documentId: doc.id });
         continue;
       }
 
-      // Map DB path /uploads/... to actual legacy disk location ./uploads/...
-      const fragments = relativeOld.split("/").slice(1); // drop "uploads"
-      const legacyRelative = path.join(...fragments);
-      const legacyAbsolutePath = path.join(legacyUploadsRoot, legacyRelative);
-
-      let sourceExists = true;
+      // Fetch the legacy document from the storage server
+      const oldUrl = `https://expediente.casitaapps.com/${relativeOld}`;
+      let res;
       try {
-        const stat = await fs.stat(legacyAbsolutePath);
-        if (!stat.isFile()) {
-          sourceExists = false;
-        }
-      } catch {
-        sourceExists = false;
-      }
-
-      if (!sourceExists) {
-        console.warn("[migrate-proyectivos] Legacy file missing, skipping document", {
-          documentId: doc.id,
-          userId: doc.userId,
-          legacyAbsolutePath,
-          filePathInDb: doc.filePath,
-        });
+        res = await fetch(oldUrl);
+      } catch (e) {
         skippedMissingFile += 1;
         continue;
       }
 
-      const ext = path.extname(legacyAbsolutePath) || "";
-      // Canonical structure: storage/documents/[userId]/[documentId].[ext]
+      if (!res.ok) {
+        console.warn("[migrate-proyectivos] Legacy file missing on external server, skipping", { documentId: doc.id });
+        skippedMissingFile += 1;
+        continue;
+      }
+
+      const ext = path.extname(relativeOld) || "";
       const newFileName = `${doc.id}${ext}`;
-      const destDirAbsolute = path.join(
-        storageRoot,
-        "documents",
-        String(doc.userId)
-      );
-      const destAbsolutePath = path.join(destDirAbsolute, newFileName);
-      const destRelativeForDb = [
-        "",
-        "storage",
-        "documents",
-        String(doc.userId),
-        newFileName,
-      ].join("/");
+      const destRelativeForDb = `/storage/documents/${doc.userId}/${newFileName}`;
+
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const outFormData = new FormData();
+      outFormData.append("file", new Blob([buffer]), newFileName);
+      outFormData.append("folder", `documents/${doc.userId}`);
+      outFormData.append("path", `documents/${doc.userId}`);
 
       try {
-        await fs.mkdir(destDirAbsolute, { recursive: true });
-
-        console.log("[migrate-proyectivos] Copying legacy proyectivos", {
-          documentId: doc.id,
-          userId: doc.userId,
-          from: legacyAbsolutePath,
-          to: destAbsolutePath,
-          newFilePath: destRelativeForDb,
+        const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+          method: "POST",
+          body: outFormData
         });
-
-        await fs.copyFile(legacyAbsolutePath, destAbsolutePath);
+        if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
       } catch (copyErr) {
-        console.error("[migrate-proyectivos] Error copying legacy file", {
+        console.error("[migrate-proyectivos] Error uploading migrated file", {
           documentId: doc.id,
-          userId: doc.userId,
-          from: legacyAbsolutePath,
-          to: destAbsolutePath,
           errorMessage: copyErr?.message || String(copyErr),
         });
         copyErrors += 1;
@@ -132,25 +95,10 @@ export async function POST(req, context) {
       } catch (updateErr) {
         console.error("[migrate-proyectivos] Error updating document record", {
           documentId: doc.id,
-          userId: doc.userId,
-          newFilePath: destRelativeForDb,
           errorMessage: updateErr?.message || String(updateErr),
         });
         updateErrors += 1;
-        // Keep both files so the original path stays valid.
         continue;
-      }
-
-      // Best effort: remove the legacy file after successful copy + DB update
-      try {
-        await fs.unlink(legacyAbsolutePath);
-      } catch (unlinkErr) {
-        console.warn("[migrate-proyectivos] Unable to remove legacy file after migration", {
-          documentId: doc.id,
-          userId: doc.userId,
-          legacyAbsolutePath,
-          errorMessage: unlinkErr?.message || String(unlinkErr),
-        });
       }
 
       migrated += 1;

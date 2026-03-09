@@ -1,12 +1,17 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSessionFromCookies } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/nextauth-options";
-import fs from "fs/promises";
-import path from "path";
 import { mifielCreateDocument } from "@/lib/mifiel";
+
+function getStorageUrl(filePath) {
+  let clean = filePath.replace(/^\/+/, "");
+  if (clean.startsWith("storage/")) {
+    clean = clean.substring("storage/".length);
+  }
+  return `https://expediente.casitaapps.com/${clean}`;
+}
 
 export async function POST(req, context) {
   const params = await context.params;
@@ -34,7 +39,6 @@ export async function POST(req, context) {
     );
   }
 
-  const allowedTypes = ["reglamento", "contrato"];
   const universalDocTypes = ["reglamento", "contrato"];
   const isUniversal = universalDocTypes.includes(type);
 
@@ -66,14 +70,17 @@ export async function POST(req, context) {
 
   let fileBuff = null, filePath = null, parentDocId = null;
   if (isUniversal) {
-    filePath = path.join(process.cwd(), "storage", `${type}.pdf`);
+    filePath = `${type}.pdf`;
+    const url = getStorageUrl(filePath);
     try {
-      fileBuff = await fs.readFile(filePath);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Document not found on storage server");
+      fileBuff = Buffer.from(await res.arrayBuffer());
     } catch (e) {
-      console.error("[MiFiel/sign] Could not read system PDF:", filePath, e);
+      console.error("[MiFiel/sign] Could not read system PDF from external storage:", url, e);
       return NextResponse.json({
         error: `Archivo PDF universal no encontrado para ${type}.`,
-        debug: { filePath }
+        debug: { url }
       }, { status: 500 });
     }
   } else {
@@ -91,9 +98,12 @@ export async function POST(req, context) {
       return NextResponse.json({ error: "Documento no subido o ya firmado.", debug: { userId, type } }, { status: 404 });
     }
     parentDocId = doc.id;
-    filePath = path.join(process.cwd(), doc.filePath);
+    filePath = doc.filePath;
     try {
-      fileBuff = await fs.readFile(filePath);
+      const url = getStorageUrl(filePath);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Not found");
+      fileBuff = Buffer.from(await res.arrayBuffer());
     } catch (e) {
       return NextResponse.json({ error: "Archivo PDF del usuario no encontrado.", debug: { filePath } }, { status: 500 });
     }
@@ -116,7 +126,6 @@ export async function POST(req, context) {
   if (existingSig && existingSig.status === "pending")
     return NextResponse.json({ error: "Firma en curso.", signature: existingSig, debug: { existingSig } }, { status: 409 });
 
-  // Send all required fields per doc!
   const external_id = `expdig_${type}_${userIdInt}_${Date.now()}`;
   const signersArr = [{
     name: user.name,
@@ -143,7 +152,6 @@ export async function POST(req, context) {
     });
     console.log("[MiFiel/sign] MiFiel API createDocument SUCCESS: ", result.id);
   } catch (e) {
-    // FULLY LOG and return Mifiel errors!
     const mifielStatus = e?.response?.status;
     const mifielData = e?.response?.data;
     console.error("[MiFiel/sign] CreateDocument API error status:", mifielStatus);

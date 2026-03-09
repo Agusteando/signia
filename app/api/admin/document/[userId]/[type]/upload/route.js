@@ -1,8 +1,6 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSessionFromCookies } from "@/lib/auth";
-import fs from "fs/promises";
 import path from "path";
 
 export const runtime = "nodejs";
@@ -25,7 +23,6 @@ export async function POST(req, context) {
   }
 
   let createdDocumentId = null;
-  let destAbsolutePath = null;
 
   try {
     const formData = await req.formData();
@@ -63,20 +60,34 @@ export async function POST(req, context) {
     });
 
     createdDocumentId = created.id;
-
-    // Root-level storage (NOT public): ./storage/documents/[userId]/[documentId].[ext]
-    const storageRoot = path.join(process.cwd(), "storage");
-    const destDirAbsolute = path.join(
-      storageRoot,
-      "documents",
-      String(userId)
-    );
-    await fs.mkdir(destDirAbsolute, { recursive: true });
-
     const fileName = `${createdDocumentId}${ext}`;
-    destAbsolutePath = path.join(destDirAbsolute, fileName);
 
-    // URL path exposed to the browser; your web server should map /storage -> ./storage
+    // Convert file to buffer and perform HTTP upload to the storage server
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const outFormData = new FormData();
+    outFormData.append("file", new Blob([buffer], { type: file.type || "application/octet-stream" }), fileName);
+    outFormData.append("folder", `documents/${userId}`);
+    outFormData.append("path", `documents/${userId}`);
+
+    console.log("[admin-upload-doc] Uploading admin document to storage server", {
+      userId,
+      type,
+      documentId: createdDocumentId,
+      fileName
+    });
+
+    const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+      method: "POST",
+      body: outFormData,
+    });
+
+    if (!uploadRes.ok) {
+      throw new Error(`External storage upload failed: HTTP ${uploadRes.status}`);
+    }
+
+    // URL path exposed to the browser
     const filePublicPath = [
       "",
       "storage",
@@ -84,18 +95,6 @@ export async function POST(req, context) {
       String(userId),
       fileName,
     ].join("/");
-
-    console.log("[admin-upload-doc] Writing admin document", {
-      userId,
-      type,
-      documentId: createdDocumentId,
-      destAbsolutePath,
-      filePublicPath,
-    });
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await fs.writeFile(destAbsolutePath, buffer);
 
     const updated = await prisma.document.update({
       where: { id: createdDocumentId },
@@ -123,14 +122,12 @@ export async function POST(req, context) {
   } catch (err) {
     console.error("[admin-upload-doc] Error during upload", {
       errorMessage: err?.message || String(err),
-      stack: err?.stack,
       userId,
       type,
       createdDocumentId,
-      destAbsolutePath,
     });
 
-    // Best effort cleanup: delete placeholder document and file if they were created
+    // Best effort cleanup: delete placeholder document
     if (createdDocumentId) {
       try {
         await prisma.document.delete({ where: { id: createdDocumentId } });
@@ -141,20 +138,6 @@ export async function POST(req, context) {
         console.error("[admin-upload-doc] Failed to roll back placeholder document", {
           documentId: createdDocumentId,
           errorMessage: rollbackErr?.message || String(rollbackErr),
-        });
-      }
-    }
-
-    if (destAbsolutePath) {
-      try {
-        await fs.unlink(destAbsolutePath);
-        console.log("[admin-upload-doc] Removed partially written file", {
-          destAbsolutePath,
-        });
-      } catch (unlinkErr) {
-        console.error("[admin-upload-doc] Failed to remove partially written file", {
-          destAbsolutePath,
-          errorMessage: unlinkErr?.message || String(unlinkErr),
         });
       }
     }
