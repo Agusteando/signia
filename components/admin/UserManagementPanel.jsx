@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import UserManagementTable from "./UserManagementTable";
@@ -26,10 +25,7 @@ export default function UserManagementPanel({
   const [fichaDrawer, setFichaDrawer] = useState({ open: false, user: null });
   const [feedback, setFeedback] = useState({ type: null, message: "" });
 
-  // Export loading state
   const [exporting, setExporting] = useState(false);
-
-  // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
 
@@ -39,7 +35,6 @@ export default function UserManagementPanel({
 
   const editablePlanteles = planteles.filter(p => adminsPlanteles.includes(p.id));
 
-  // Reset page on filter change
   useEffect(() => { setPage(1); }, [filter, plantelFilter, roleFilter, statusFilter, activeFilter, users.length]);
 
   const usersFiltered = useMemo(() => {
@@ -58,6 +53,7 @@ export default function UserManagementPanel({
         (activeFilter === "todos" || (activeFilter === "activos" ? u.isActive : !u.isActive))
       );
   }, [users, filter, plantelFilter, roleFilter, statusFilter, activeFilter]);
+  
   const totalPages = Math.max(1, Math.ceil(usersFiltered.length / pageSize));
   const paginatedUsers = useMemo(
     () => usersFiltered.slice((page - 1) * pageSize, page * pageSize),
@@ -73,6 +69,7 @@ export default function UserManagementPanel({
   function handleSelectUser(userId, on) {
     setSelection(sel => ({ ...sel, [userId]: on }));
   }
+  
   function handleSelectAll(on) {
     if (on)
       setSelection(sel => ({
@@ -86,6 +83,7 @@ export default function UserManagementPanel({
         return ns;
       });
   }
+  
   async function handleAssignPlantel(userId, plantelId) {
     setFeedback({ type: "info", message: "Asignando..." });
     try {
@@ -102,7 +100,7 @@ export default function UserManagementPanel({
       setFeedback({ type: "error", message: String(e.message || e) });
     }
   }
-  // Remove approve
+  
   async function handleBulkAssign(plantelId) {
     setFeedback({ type: "info", message: "Asignando en lote..." });
     try {
@@ -119,9 +117,7 @@ export default function UserManagementPanel({
       setFeedback({ type: "error", message: String(e.message || e) });
     }
   }
-  // Removed handleBulkApprove and handleApproveCandidate
 
-  // Activate/deactivate single
   async function handleSetActive(userId, isActive) {
     setFeedback({ type: "info", message: isActive ? "Activando..." : "Dando de baja..." });
     try {
@@ -139,7 +135,7 @@ export default function UserManagementPanel({
       setFeedback({ type: "error", message: String(e.message || e) });
     }
   }
-  // Bulk activate/deactivate
+  
   async function handleBulkSetActive(isActive) {
     setFeedback({ type: "info", message: isActive ? "Activando..." : "Dando de baja..." });
     for (let userId of selectedUserIds) {
@@ -150,7 +146,6 @@ export default function UserManagementPanel({
     window.location.reload();
   }
 
-  // User delete
   async function handleDelete(userId) {
     setFeedback({ type: "info", message: "Eliminando usuario..." });
     try {
@@ -206,18 +201,17 @@ export default function UserManagementPanel({
     }
   }
 
-  // Pagination controls (mobile-first, sticky)
   function PaginationBar() {
     return (
-      <div className="w-full flex flex-wrap flex-row gap-2 justify-between items-center mt-1 mb-4 px-1 text-xs">
-        <div>
-          <span className="font-semibold mr-3">
-            Página {page} / {totalPages} ({usersFiltered.length} usuario{usersFiltered.length === 1 ? "" : "s"})
+      <div className="w-full flex flex-wrap flex-row gap-3 justify-between items-center mt-2 mb-3 px-1 text-xs">
+        <div className="flex items-center flex-wrap gap-3">
+          <span className="font-semibold text-slate-700">
+            Página {page} / {totalPages} <span className="hidden xs:inline">({usersFiltered.length} usuario{usersFiltered.length === 1 ? "" : "s"})</span>
           </span>
-          <span>
-            Filas por página:&nbsp;
+          <span className="text-slate-600 flex items-center gap-1">
+            Filas:
             <select
-              className="border border-cyan-200 rounded px-1 py-0.5"
+              className="border border-slate-300 bg-white rounded-md px-1 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               value={pageSize}
               onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
             >
@@ -225,62 +219,59 @@ export default function UserManagementPanel({
             </select>
           </span>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           <button
-            className="px-3 py-1 rounded font-bold bg-cyan-50 border border-cyan-200 hover:bg-cyan-200 text-cyan-900 cursor-pointer disabled:opacity-60"
+            className="px-3 py-1.5 rounded-md font-medium bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 cursor-pointer disabled:opacity-50 transition"
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
-            tabIndex={0}
             aria-label="Página anterior"
           >
-            <ChevronLeftIcon className="w-5 h-5 inline mb-0.5" />
+            <ChevronLeftIcon className="w-4 h-4 inline" />
           </button>
           <button
-            className="px-3 py-1 rounded font-bold bg-cyan-50 border border-cyan-200 hover:bg-cyan-200 text-cyan-900 cursor-pointer disabled:opacity-60"
+            className="px-3 py-1.5 rounded-md font-medium bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 cursor-pointer disabled:opacity-50 transition"
             disabled={page >= totalPages}
             onClick={() => setPage(page + 1)}
-            tabIndex={0}
             aria-label="Página siguiente"
           >
-            <ChevronRightIcon className="w-5 h-5 inline mb-0.5" />
+            <ChevronRightIcon className="w-4 h-4 inline" />
           </button>
         </div>
       </div>
     );
   }
 
-  // -- Export Button: shown to admin/superadmin only, sticky right above the table
   function ExportBar() {
     if (!["superadmin", "admin"].includes(adminRole)) return null;
     return (
-      <div className="flex w-full items-center justify-end mb-2">
+      <div className="flex w-full items-center justify-end mb-3">
         <button
           type="button"
           onClick={handleExcelExport}
           disabled={exporting}
-          className="flex items-center gap-2 bg-gradient-to-r from-emerald-700 to-cyan-700 hover:from-cyan-700 hover:to-fuchsia-700 text-white font-bold px-4 py-2 rounded-full shadow transition text-xs sm:text-base disabled:opacity-70"
+          className="flex items-center gap-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium px-4 py-1.5 rounded-md shadow-sm transition text-xs sm:text-sm disabled:opacity-70"
         >
-          <ArrowDownTrayIcon className="w-5 h-5" />
-          {exporting ? "Generando Excel…" : "Exportar Excel por plantel"}
+          <ArrowDownTrayIcon className="w-4 h-4 text-slate-500" />
+          {exporting ? "Generando reporte…" : "Exportar reporte (Excel)"}
         </button>
       </div>
     );
   }
 
   return (
-    <section id="user-management" className="w-full bg-white border border-cyan-200 shadow-xl rounded-2xl p-4 mb-8">
+    <div id="user-management" className="w-full bg-white border border-slate-200 shadow-sm rounded-xl p-4 sm:p-5">
       <header className="mb-4">
-        <h2 className="text-xl font-bold text-cyan-900 mb-1">Asignar empleados y candidatos a plantel</h2>
-        <div className="flex flex-wrap items-center gap-3 mt-2 mb-1 text-sm">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">Gestión de Usuarios</h2>
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3 mt-2 text-sm">
           <input
-            className="border border-cyan-200 rounded px-2 py-1 text-sm"
-            placeholder="Buscar nombre o correo"
+            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white transition"
+            placeholder="Buscar nombre o correo..."
             type="text"
             value={filter}
             onChange={e => setFilter(e.target.value)}
           />
           <select
-            className="border border-cyan-200 rounded px-2 py-1 text-sm"
+            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
             value={plantelFilter}
             onChange={e => setPlantelFilter(e.target.value)}
           >
@@ -288,62 +279,68 @@ export default function UserManagementPanel({
             {planteles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <select
-            className="border border-cyan-200 rounded px-2 py-1 text-sm"
+            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
             value={roleFilter}
             onChange={e => setRoleFilter(e.target.value)}
           >
-            <option value="all">Todos</option>
+            <option value="all">Rol (Todos)</option>
             <option value="candidate">Candidatos</option>
             <option value="employee">Empleados</option>
           </select>
           <select
-            className="border border-cyan-200 rounded px-2 py-1 text-sm"
+            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
           >
-            <option value="all">Todos</option>
+            <option value="all">Estatus (Todos)</option>
             <option value="ready">Listos para aprobar</option>
             <option value="employee">Aprobados</option>
             <option value="incomplete">Incompletos</option>
           </select>
           <select
-            className="border border-cyan-200 rounded px-2 py-1 text-sm"
+            className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
             value={activeFilter}
             onChange={e => setActiveFilter(e.target.value)}
           >
-            <option value="todos">Todos</option>
+            <option value="todos">Plataforma (Todos)</option>
             <option value="activos">Sólo activos</option>
             <option value="bajas">Sólo bajas</option>
           </select>
         </div>
         {feedback.message && (
-          <div className={`mt-2 px-3 py-1 rounded font-bold text-xs ${feedback.type === "success" ? "bg-emerald-50 text-emerald-700" : feedback.type === "error" ? "bg-red-50 text-red-700" : "bg-cyan-50 text-cyan-700"}`}>
-            {feedback.type === "success" && <CheckCircleIcon className="w-5 h-5 mr-1 inline" />}
-            {feedback.type === "error" && <XCircleIcon className="w-5 h-5 mr-1 inline" />}
+          <div className={`mt-3 px-3 py-2 rounded-md font-medium text-xs border ${feedback.type === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : feedback.type === "error" ? "bg-red-50 text-red-700 border-red-200" : "bg-indigo-50 text-indigo-700 border-indigo-200"}`}>
+            {feedback.type === "success" && <CheckCircleIcon className="w-4 h-4 mr-1 inline" />}
+            {feedback.type === "error" && <XCircleIcon className="w-4 h-4 mr-1 inline" />}
             {feedback.message}
           </div>
         )}
       </header>
+      
       <ExportBar />
       <PaginationBar />
-      <UserManagementTable
-        users={paginatedUsers}
-        planteles={planteles}
-        adminsPlanteles={adminsPlanteles}
-        role={adminRole}
-        selection={selection}
-        selectedUserIds={selectedUserIds}
-        allSelected={allSelected}
-        canAssignPlantel={canAssignPlantel}
-        onSelectUser={handleSelectUser}
-        onSelectAll={handleSelectAll}
-        onAssignPlantel={handleAssignPlantel}
-        onDocs={handleOpenDocs}
-        onFichaTecnica={handleOpenFichaTecnica}
-        onSetActive={handleSetActive}
-        onDelete={handleDelete}
-      />
+      
+      <div className="overflow-x-auto rounded-xl border border-slate-200 mb-4">
+        <UserManagementTable
+          users={paginatedUsers}
+          planteles={planteles}
+          adminsPlanteles={adminsPlanteles}
+          role={adminRole}
+          selection={selection}
+          selectedUserIds={selectedUserIds}
+          allSelected={allSelected}
+          canAssignPlantel={canAssignPlantel}
+          onSelectUser={handleSelectUser}
+          onSelectAll={handleSelectAll}
+          onAssignPlantel={handleAssignPlantel}
+          onDocs={handleOpenDocs}
+          onFichaTecnica={handleOpenFichaTecnica}
+          onSetActive={handleSetActive}
+          onDelete={handleDelete}
+        />
+      </div>
+      
       <PaginationBar />
+      
       <BulkActionBar
         users={paginatedUsers}
         planteles={planteles}
@@ -354,11 +351,13 @@ export default function UserManagementPanel({
         onBulkAssign={handleBulkAssign}
         onBulkSetActive={handleBulkSetActive}
       />
+      
       <UserDocsDrawer
         open={docsDrawer.open}
         user={docsDrawer.user}
         onClose={closeDocsDrawer}
       />
+      
       <UserFichaTecnicaDrawer
         open={fichaDrawer.open}
         user={fichaDrawer.user}
@@ -368,6 +367,6 @@ export default function UserManagementPanel({
         onClose={closeFichaDrawer}
         isSuperadmin={adminRole === "superadmin"}
       />
-    </section>
+    </div>
   );
 }

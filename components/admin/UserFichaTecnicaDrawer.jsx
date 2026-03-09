@@ -19,7 +19,6 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 
 const FIELDS = [
   { key: "rfc", label: "RFC", icon: IdentificationIcon },
@@ -284,7 +283,7 @@ export default function UserFichaTecnicaDrawer({
 
   return (
     <div className="fixed inset-0 z-[70] bg-slate-900/40 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-md h-full bg-white shadow-2xl overflow-y-scroll border-l border-slate-200 px-0 pt-0 relative">
+      <div className="w-full max-w-sm sm:max-w-md h-full bg-white shadow-2xl overflow-y-auto border-l border-slate-200 px-0 pt-0 relative flex flex-col">
         <button
           className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 rounded-full p-1.5 bg-slate-100 hover:bg-slate-200 transition"
           onClick={onClose}
@@ -293,18 +292,19 @@ export default function UserFichaTecnicaDrawer({
           <XMarkIcon className="w-5 h-5" />
         </button>
         
-        <div className="p-6 pb-5 flex items-center gap-4 border-b border-slate-100">
-          <Image
+        <div className="p-5 flex items-center gap-3.5 border-b border-slate-100 shrink-0">
+          <img
             src={user.picture || "/IMAGOTIPO-IECS-IEDIS.png"}
-            width={52}
-            height={52}
+            width={48}
+            height={48}
             alt=""
             className="rounded-full bg-slate-100 border border-slate-200 shadow-sm shrink-0 object-cover"
+            onError={(e) => { e.target.onerror = null; e.target.src = "/IMAGOTIPO-IECS-IEDIS.png"; }}
           />
-          <div>
-            <div className="font-semibold text-slate-900 leading-tight truncate">{user.name}</div>
-            <div className="text-xs text-slate-500 truncate mb-1.5">{user.email}</div>
-            <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-medium border ${
+          <div className="min-w-0">
+            <div className="font-semibold text-slate-900 leading-tight truncate text-sm sm:text-base">{user.name}</div>
+            <div className="text-xs text-slate-500 truncate mb-1">{user.email}</div>
+            <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium border ${
               user.role === "employee" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-indigo-50 text-indigo-700 border-indigo-200"
             }`}>
               {user.role === "employee" ? "Empleado" : "Candidato"}
@@ -312,15 +312,15 @@ export default function UserFichaTecnicaDrawer({
           </div>
         </div>
         
-        <form className="px-6 py-5 flex flex-col gap-4" onSubmit={handleSave}>
-          <h2 className="font-semibold text-base text-slate-900">Detalles de Ficha Técnica</h2>
+        <form className="p-5 flex flex-col gap-3.5 flex-1" onSubmit={handleSave}>
+          <h2 className="font-semibold text-sm sm:text-base text-slate-900">Detalles de Ficha Técnica</h2>
           
           {isLoading || !ficha ? (
-            <div className="text-slate-500 py-10 text-sm font-medium text-center">Cargando datos del colaborador...</div>
+            <div className="text-slate-500 py-10 text-sm font-medium text-center">Cargando datos...</div>
           ) : (
             <>
-              <div className="flex items-center gap-3 mb-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-xs font-semibold text-slate-700">
+              <div className="flex items-center gap-3 mb-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-700">
                   Completitud
                 </span>
                 <div className="flex-1">
@@ -333,18 +333,18 @@ export default function UserFichaTecnicaDrawer({
                     />
                   </div>
                 </div>
-                <span className="text-xs font-medium text-slate-500">{fichaPct}%</span>
+                <span className="text-[11px] sm:text-xs font-medium text-slate-500">{fichaPct}%</span>
               </div>
               
-              <div className="grid grid-cols-1 gap-y-4">
+              <div className="grid grid-cols-1 gap-y-3.5">
                 {FIELDS.map(f =>
                   <div key={f.key}>
                     <label className="font-medium text-xs text-slate-600 flex items-center gap-1.5 mb-1.5">
-                      <f.icon className="w-4 h-4 text-slate-400" /> {f.label}
+                      <f.icon className="w-3.5 h-3.5 text-slate-400" /> {f.label}
                     </label>
                     {f.key === "fechaIngreso" || f.key === "fechaBajaSustituido" ? (
                       <input
-                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+                        className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                         name={f.key}
                         type="date"
                         value={ficha[f.key]}
@@ -357,7 +357,7 @@ export default function UserFichaTecnicaDrawer({
                         value={ficha.plantelId || ""}
                         onChange={handlePlantelChange}
                         disabled={!canEdit || isSaving}
-                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+                        className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                       >
                         <option value="">Seleccionar plantel...</option>
                         {(canEdit ? editablePlanteles : planteles).map(p =>
@@ -379,7 +379,7 @@ export default function UserFichaTecnicaDrawer({
                           onKeyDown={handlePuestoKeyDown}
                           disabled={!canEdit || isSaving || puestosLoading}
                           className={classNames(
-                            "w-full inline-flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm shadow-sm transition",
+                            "w-full inline-flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-sm shadow-sm transition",
                             canEdit && !isSaving ? "border-slate-300 bg-white hover:bg-slate-50 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" : "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
                           )}
                           aria-haspopup="listbox"
@@ -391,14 +391,14 @@ export default function UserFichaTecnicaDrawer({
                               ? ficha.puesto
                               : (puestosLoading ? "Cargando catálogo..." : "Seleccionar de la lista...")}
                           </span>
-                          <ChevronUpDownIcon className="w-5 h-5 text-slate-400" />
+                          <ChevronUpDownIcon className="w-4 h-4 text-slate-400" />
                         </button>
 
                         {ficha.puesto && isPuestoOutOfCatalog && (
-                          <div className="mt-2 text-xs flex items-start gap-1.5 text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
-                            <ExclamationTriangleIcon className="w-4 h-4 shrink-0 mt-0.5" />
+                          <div className="mt-1.5 text-[10px] sm:text-[11px] flex items-start gap-1.5 text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-1.5">
+                            <ExclamationTriangleIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                             <span>
-                              Este puesto no figura en el catálogo actual. Puedes conservarlo o elegir uno válido de la lista.
+                              Puesto no en catálogo activo. Reemplazar si es necesario.
                             </span>
                           </div>
                         )}
@@ -407,19 +407,19 @@ export default function UserFichaTecnicaDrawer({
                           <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden">
                             <div className="p-2 border-b border-slate-100 bg-slate-50">
                               <div className="relative">
-                                <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
+                                <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-2" />
                                 <input
                                   ref={puestoInputRef}
                                   value={puestoFilter}
                                   onChange={e => { setPuestoFilter(e.target.value); setPuestoActiveIndex(0); }}
                                   onKeyDown={handlePuestoKeyDown}
-                                  placeholder="Buscar puesto…"
-                                  className="w-full pl-8 pr-8 py-2 rounded-md border border-slate-300 text-sm bg-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                  placeholder="Buscar..."
+                                  className="w-full pl-8 pr-8 py-1.5 rounded-md border border-slate-300 text-sm bg-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                                 />
                                 {puestoFilter && (
                                   <button
                                     type="button"
-                                    className="absolute right-2 top-2 p-1 rounded-md hover:bg-slate-100 transition"
+                                    className="absolute right-2 top-1.5 p-1 rounded-md hover:bg-slate-100 transition"
                                     onClick={() => { setPuestoFilter(""); setPuestoActiveIndex(0); puestoInputRef.current?.focus(); }}
                                     aria-label="Limpiar"
                                   >
@@ -432,11 +432,10 @@ export default function UserFichaTecnicaDrawer({
                               id="puesto-listbox"
                               role="listbox"
                               ref={puestoListRef}
-                              className="max-h-60 overflow-auto py-1"
-                              aria-label="Opciones de puesto"
+                              className="max-h-52 overflow-auto py-1"
                             >
                               {puestosFiltered.length === 0 && (
-                                <li className="px-4 py-3 text-sm text-slate-500 text-center">Sin resultados</li>
+                                <li className="px-3 py-2 text-xs text-slate-500 text-center">Sin resultados</li>
                               )}
                               {puestosFiltered.map((p, idx) => {
                                 const selected = ficha.puesto === p.name;
@@ -448,7 +447,7 @@ export default function UserFichaTecnicaDrawer({
                                     aria-selected={selected}
                                     data-index={idx}
                                     className={classNames(
-                                      "px-4 py-2 cursor-pointer flex items-center justify-between text-sm transition-colors",
+                                      "px-3 py-2 cursor-pointer flex items-center justify-between text-xs transition-colors",
                                       active ? "bg-slate-50" : "",
                                       selected ? "font-semibold text-indigo-700 bg-indigo-50/50" : "text-slate-700 hover:bg-slate-50"
                                     )}
@@ -460,22 +459,22 @@ export default function UserFichaTecnicaDrawer({
                                     }}
                                   >
                                     <span className="truncate">{p.name}</span>
-                                    {selected && <CheckCircleIcon className="w-4 h-4 text-indigo-600" />}
+                                    {selected && <CheckCircleIcon className="w-3.5 h-3.5 text-indigo-600" />}
                                   </li>
                                 );
                               })}
                             </ul>
-                            <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-t border-slate-100 bg-slate-50">
+                            <div className="flex items-center justify-between gap-2 px-2.5 py-2 border-t border-slate-100 bg-slate-50">
                               <button
                                 type="button"
-                                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
+                                className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
                                 onClick={() => { setPuestoFilter(""); closePuestoDropdown(); puestoButtonRef.current?.focus(); }}
                               >
                                 Cancelar
                               </button>
                               <button
                                 type="button"
-                                className="text-xs font-medium px-3 py-1.5 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
+                                className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 transition"
                                 onClick={() => {
                                   setFicha(f => ({ ...f, puesto: "" }));
                                   setPuestoFilter("");
@@ -484,7 +483,7 @@ export default function UserFichaTecnicaDrawer({
                                 }}
                                 disabled={!canEdit || isSaving}
                               >
-                                Limpiar selección
+                                Limpiar
                               </button>
                             </div>
                           </div>
@@ -492,7 +491,7 @@ export default function UserFichaTecnicaDrawer({
                       </div>
                     ) : (
                       <input
-                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
+                        className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm"
                         name={f.key}
                         value={ficha[f.key]}
                         onChange={handleChange}
@@ -503,48 +502,48 @@ export default function UserFichaTecnicaDrawer({
                 )}
               </div>
               
-              <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-slate-100">
+              <div className="flex flex-col gap-2.5 mt-5 pt-5 border-t border-slate-100 pb-2">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium shadow-sm transition text-sm disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium shadow-sm transition text-xs sm:text-sm disabled:opacity-60"
                   onClick={downloadFichaPdf}
                   disabled={pdfDownloading || isSaving}
                 >
                   <ArrowDownTrayIcon className="w-4 h-4" />
-                  {pdfDownloading ? "Exportando..." : "Descargar PDF Ficha Técnica"}
+                  {pdfDownloading ? "Exportando..." : "Descargar Ficha PDF"}
                 </button>
                 <button
                   type="button"
-                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium shadow-sm transition text-sm disabled:opacity-60 ${zipQueued ? "cursor-wait" : ""}`}
+                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium shadow-sm transition text-xs sm:text-sm disabled:opacity-60 ${zipQueued ? "cursor-wait" : ""}`}
                   onClick={downloadTodoZip}
                   disabled={zipDownloading || zipQueued || isSaving}
                 >
                   <ArrowDownOnSquareStackIcon className="w-4 h-4" />
-                  {zipDownloading ? "Empaquetando ZIP..." : zipQueued ? "Procesando en cola…" : "Descargar Expediente Completo"}
+                  {zipDownloading ? "Empaquetando ZIP..." : zipQueued ? "En cola…" : "Descargar Expediente ZIP"}
                 </button>
               </div>
               
               {error && (
-                <div className="mt-4 px-4 py-2.5 rounded-md bg-red-50 text-red-700 text-sm font-medium flex items-center gap-2">
-                  <ExclamationTriangleIcon className="w-5 h-5 shrink-0" /> {error}
+                <div className="px-3 py-2 rounded-md bg-red-50 text-red-700 text-xs font-medium flex items-center gap-2">
+                  <ExclamationTriangleIcon className="w-4 h-4 shrink-0" /> {error}
                 </div>
               )}
               {success && (
-                <div className="mt-4 px-4 py-2.5 rounded-md bg-emerald-50 text-emerald-800 text-sm font-medium flex items-center gap-2">
-                  <CheckCircleIcon className="w-5 h-5 shrink-0 text-emerald-600" /> {success}
+                <div className="px-3 py-2 rounded-md bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2">
+                  <CheckCircleIcon className="w-4 h-4 shrink-0 text-emerald-600" /> {success}
                 </div>
               )}
               
               {!canEdit && (
-                <div className="mt-4 text-xs text-slate-500 font-medium text-center bg-slate-50 p-2 rounded-md">Visualización en modo lectura</div>
+                <div className="mt-2 text-[11px] text-slate-500 font-medium text-center bg-slate-50 p-1.5 rounded-md">Modo lectura</div>
               )}
               {canEdit && (
                 <button
                   type="submit"
-                  className="mt-6 py-2.5 rounded-md w-full bg-indigo-600 text-white font-medium shadow-sm text-sm hover:bg-indigo-700 transition-colors disabled:opacity-60"
+                  className="mt-2 py-2 rounded-md w-full bg-indigo-600 text-white font-medium shadow-sm text-sm hover:bg-indigo-700 transition-colors disabled:opacity-60"
                   disabled={isSaving}
                 >
-                  {isSaving ? "Guardando cambios..." : "Guardar Ficha Técnica"}
+                  {isSaving ? "Guardando..." : "Guardar Ficha Técnica"}
                 </button>
               )}
             </>

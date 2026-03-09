@@ -27,7 +27,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }) {
   const labelStyle = "text-sm font-medium";
 
   const header = (
-    <header className="flex items-center gap-2 mb-2 px-6 pt-6 pb-2">
+    <header className="flex items-center gap-2 mb-2 px-5 pt-6 pb-2">
       <span className="font-extrabold text-slate-900 tracking-tight text-xl select-none">
         Admin
       </span>
@@ -67,17 +67,16 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }) {
   return (
     <>
       <aside 
-        className="hidden md:flex flex-col sticky z-40 bg-white border-r border-slate-200 shadow-sm"
+        className="hidden md:flex flex-col sticky z-40 bg-white border-r border-slate-200 shadow-sm shrink-0"
         style={{
           top: `${NAVBAR_HEIGHT}px`,
           height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
-          minWidth: '15rem',
-          maxWidth: '15rem'
+          width: '14rem'
         }}
       >
         <div className="flex flex-col items-stretch w-full h-full">
           {header}
-          <div className="px-4 py-2">
+          <div className="px-5 py-2">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Panel de Control</div>
           </div>
           <nav className="flex-1 flex flex-col px-3">{navLinks}</nav>
@@ -90,7 +89,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen }) {
           <div className="bg-slate-900/50 backdrop-blur-sm w-full h-full absolute inset-0" onClick={() => setMobileOpen(false)} />
           <div className="relative z-10 w-64 bg-white border-r border-slate-200 shadow-2xl h-full flex flex-col">
             {header}
-            <div className="px-4 py-2">
+            <div className="px-5 py-2">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Panel de Control</div>
             </div>
             <nav className="flex-1 flex flex-col px-3 gap-1 overflow-y-auto">{navLinks}</nav>

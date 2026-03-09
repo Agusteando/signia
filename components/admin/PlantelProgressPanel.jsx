@@ -1,4 +1,3 @@
-
 "use client";
 import { useState } from "react";
 import PlantelUserProgressTable from "./PlantelUserProgressTable";
@@ -8,14 +7,13 @@ export default function PlantelProgressPanel({ planteles }) {
   const [openPlantelId, setOpenPlantelId] = useState(null);
 
   return (
-    <section className="mb-10">
-      <h2 className="text-2xl font-extrabold mb-6 text-cyan-900 flex items-center gap-2">
-        <BuildingLibraryIcon className="w-7 h-7 text-cyan-700" />
-        Progreso de empleados y candidatos por plantel
+    <div id="plantel-progress" className="w-full">
+      <h2 className="text-lg font-semibold mb-4 text-slate-900 flex items-center gap-2">
+        <BuildingLibraryIcon className="w-5 h-5 text-slate-500" />
+        Progreso por Plantel
       </h2>
-      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {planteles.map(p => {
-          // Defensive: always use 0 for undefined
           const progress = p.progress || {};
           const total = Number(progress.total) || 0;
           const userCompleted = Number(progress.userDocsCompleted) || 0;
@@ -25,78 +23,82 @@ export default function PlantelProgressPanel({ planteles }) {
 
           return (
             <div key={p.id}
-              className="shadow-xl border border-cyan-200 rounded-3xl overflow-hidden bg-white hover:shadow-2xl transition relative flex flex-col"
+              className="shadow-sm border border-slate-200 rounded-xl overflow-hidden bg-white hover:shadow-md transition relative flex flex-col"
             >
-              <div className="px-6 py-5 flex flex-row items-center justify-between gap-2">
-                <div>
-                  <div className="font-bold text-lg text-cyan-700 mb-1">{p.name}</div>
-                  <div className="text-xs text-slate-600 font-semibold">
-                    Usuarios: <span className="text-cyan-900">{total}</span>
+              <div className="px-4 py-3 sm:px-5 sm:py-4 flex flex-row items-center justify-between gap-2 border-b border-slate-100">
+                <div className="min-w-0 pr-2">
+                  <div className="font-semibold text-sm sm:text-base text-slate-900 truncate">{p.name}</div>
+                  <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5">
+                    Usuarios: <span className="text-slate-900 font-semibold">{total}</span>
                   </div>
                 </div>
-                <button className="px-4 py-2 rounded-full bg-cyan-600 hover:bg-cyan-800 text-white font-bold text-xs shadow flex items-center gap-2"
+                <button className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs shadow-sm flex items-center gap-1.5 transition shrink-0"
                   onClick={() => setOpenPlantelId(p.id)}
                 >
-                  <ClipboardDocumentListIcon className="w-5 h-5" />
-                  Ver detalles
+                  <ClipboardDocumentListIcon className="w-4 h-4 text-slate-400" />
+                  Detalles
                 </button>
               </div>
-              <div className="px-6 pb-5">
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="text-xs text-cyan-700 font-bold">Expedientes digitales</span>
-                  <span className="text-xs font-mono font-bold text-slate-500">{percentDigital}%</span>
+              <div className="px-4 py-4 sm:px-5 sm:py-5">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-slate-600 font-medium">Expedientes digitales</span>
+                  <span className="text-xs font-semibold text-slate-900">{percentDigital}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-cyan-100 overflow-hidden mb-2">
+                <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden mb-4">
                   <div
                     className={`h-full rounded-full transition-all ${
                       percentDigital > 90
-                        ? "bg-emerald-400"
+                        ? "bg-emerald-500"
                         : percentDigital > 50
-                        ? "bg-cyan-400"
-                        : "bg-yellow-400"
+                        ? "bg-indigo-500"
+                        : "bg-amber-400"
                     }`}
                     style={{ width: `${percentDigital}%` }}
                   />
                 </div>
-                <div className="flex items-center gap-3 mt-2 mb-1">
-                  <span className="text-xs text-emerald-800 font-bold">Expedientes finales</span>
-                  <span className="text-xs font-mono font-bold text-slate-500">{percentFinal}%</span>
+                
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-slate-600 font-medium">Expedientes finales</span>
+                  <span className="text-xs font-semibold text-slate-900">{percentFinal}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-emerald-100 overflow-hidden mb-2">
+                <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden mb-5">
                   <div
                     className={`h-full rounded-full transition-all ${
                       percentFinal > 90
                         ? "bg-emerald-500"
                         : percentFinal > 50
-                        ? "bg-emerald-400"
-                        : "bg-yellow-400"
+                        ? "bg-indigo-500"
+                        : "bg-amber-400"
                     }`}
                     style={{ width: `${percentFinal}%` }}
                   />
                 </div>
-                <div className="flex flex-wrap gap-x-2 gap-y-2 text-xs font-bold mb-2">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-                    Digitales: {userCompleted}
+                
+                <div className="flex flex-wrap gap-2 text-[11px] sm:text-xs font-medium">
+                  <span className="px-2 py-1 rounded bg-slate-50 text-slate-600 border border-slate-200">
+                    Digitales: <strong className="text-slate-900">{userCompleted}</strong>
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
-                    Finales: {adminCompleted}
+                  <span className="px-2 py-1 rounded bg-slate-50 text-slate-600 border border-slate-200">
+                    Finales: <strong className="text-slate-900">{adminCompleted}</strong>
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    Faltantes: {total - adminCompleted}
+                  <span className="px-2 py-1 rounded bg-slate-50 text-slate-600 border border-slate-200">
+                    Faltantes: <strong className="text-slate-900">{total - adminCompleted}</strong>
                   </span>
                 </div>
               </div>
+              
               {openPlantelId === p.id &&
                 <PlantelUserProgressTable
                   users={p.employees}
                   stepMeta={p.stepMeta || []}
                   plantelName={p.name}
                   onClose={() => setOpenPlantelId(null)}
-                />}
+                />
+              }
             </div>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

@@ -153,8 +153,8 @@ export default async function AdminInicioPage({ searchParams }) {
     <AdminInicioClient session={session} showSidebar={session.role === "superadmin"}>
       <AdminNav session={session} />
       
-      <div className="flex-1 flex flex-col w-full min-w-0 max-w-full pt-6 pb-12">
-        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+      <div className="flex-1 flex flex-col w-full min-w-0 max-w-full pt-4 pb-12">
+        <section className="w-full max-w-screen-2xl mx-auto px-3 sm:px-6 mb-5">
           <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 px-4 py-3 rounded-xl shadow-sm">
             <LightBulbIcon className="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-indigo-800">
@@ -163,7 +163,7 @@ export default async function AdminInicioPage({ searchParams }) {
           </div>
         </section>
 
-        <section id="dashboard-stats" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <section id="dashboard-stats" className="w-full max-w-screen-2xl mx-auto px-3 sm:px-6 mb-6">
           <AdminDashboardStats
             summary={{
               userDocsCompleted,
@@ -176,7 +176,7 @@ export default async function AdminInicioPage({ searchParams }) {
           />
         </section>
         
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 mb-12">
+        <div className="w-full max-w-screen-2xl mx-auto px-3 sm:px-6 flex flex-col gap-6 mb-12">
           <UserManagementPanel
             users={users}
             planteles={filteredPlanteles}
@@ -187,13 +187,19 @@ export default async function AdminInicioPage({ searchParams }) {
           <PlantelProgressPanel planteles={plantelProgressData} />
           
           {session.role === "superadmin" && (
-            <>
-              <PuestoAdminPanelClient />
-              <PlantelListAdminPanelClient initialPlanteles={planteles} onRefresh={null} />
-              <PlantelSignatureNamesPanel />
-              <PlantelAdminMatrix planteles={planteles} admins={admins} />
-              <PlantelAdminMatrixCrudClient />
-            </>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+              <div className="flex flex-col gap-6 w-full">
+                <PuestoAdminPanelClient />
+                <PlantelSignatureNamesPanel />
+              </div>
+              <div className="flex flex-col gap-6 w-full">
+                <PlantelListAdminPanelClient initialPlanteles={planteles} onRefresh={null} />
+                <PlantelAdminMatrixCrudClient />
+              </div>
+              <div className="xl:col-span-2">
+                <PlantelAdminMatrix planteles={planteles} admins={admins} />
+              </div>
+            </div>
           )}
         </div>
       </div>
