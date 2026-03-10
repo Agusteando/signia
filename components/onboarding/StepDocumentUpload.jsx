@@ -1,26 +1,12 @@
-
 "use client";
-import DocumentDropzone from "../DocumentDropzone";
-import PdfViewer from "../PdfViewer";
-import { ChatBubbleLeftEllipsisIcon, DocumentDuplicateIcon } from "@heroicons/react/24/solid";
-import { getStatusMeta } from "@/lib/expedienteStatus";
+import { useState, useRef } from "react";
+import { 
+  CloudArrowUpIcon, 
+  DocumentIcon, 
+  CheckCircleIcon, 
+  ArrowTopRightOnSquareIcon 
+} from "@heroicons/react/24/outline";
 
-function formatDateDisplay(date) {
-  if (!date) return "";
-  try {
-    return new Date(date).toLocaleDateString("es-MX", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch {
-    return String(date);
-  }
-}
-
-/**
- * Hardened: always guards against undefined/null props, fallback safe rendering
- */
 export default function StepDocumentUpload({
   latestDoc,
   documentHistory,
@@ -29,122 +15,136 @@ export default function StepDocumentUpload({
   uploadSuccess,
   uploadProgress,
   onUpload,
-  accept,
+  accept = "application/pdf"
 }) {
-  const docs = Array.isArray(documentHistory) ? documentHistory : [];
-  const latest = latestDoc ?? (docs.length ? docs[0] : null);
+  const [dragActive, setDragActive] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      onUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleChange = (e) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      onUpload(e.target.files[0]);
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center w-full">
-      {latest ? (
-        <>
-          {/* Safety: Catch errors if filePath is missing */}
-          {latest.filePath ? (
-            <PdfViewer url={latest.filePath} height={380} className="mb-2" />
-          ) : (
-            <div className="flex items-center justify-center my-5 py-5 w-full bg-red-50 text-red-700 rounded-xl font-bold text-xs">
-              No se encontró archivo PDF para mostrar.
-            </div>
-          )}
-          <div className="flex flex-row gap-3 w-full mb-1 items-center justify-center">
-            {latest.filePath &&
-              <a
-                href={latest.filePath}
-                target="_blank"
-                rel="noopener"
-                className="flex items-center gap-2 border border-cyan-200 px-4 py-2 rounded-lg text-cyan-800 font-semibold bg-cyan-50 shadow-sm hover:bg-cyan-100 transition text-xs mt-1 mb-1"
-              >
-                Descargar PDF
-              </a>
-            }
-            <span className="inline-flex items-center px-2 py-1 rounded bg-cyan-50 text-xs text-slate-400 font-mono">
-              {latest.uploadedAt ? `Subido ${formatDateDisplay(latest.uploadedAt)}` : null}
-              {latest.version ? <> &nbsp;| v{latest.version}</> : null}
-            </span>
+    <div className="w-full flex flex-col items-center justify-center mt-4 px-2">
+      {/* Error / Success Status Messages */}
+      {uploadError && (
+        <div className="mb-4 w-full max-w-md p-3 bg-red-50 text-red-700 text-sm font-semibold rounded-lg border border-red-200 text-center shadow-sm">
+          {uploadError}
+        </div>
+      )}
+      
+      {uploadSuccess && (
+        <div className="mb-4 w-full max-w-md p-3 bg-emerald-50 text-emerald-800 text-sm font-bold rounded-lg border border-emerald-200 text-center flex items-center justify-center gap-2 shadow-sm">
+          <CheckCircleIcon className="w-6 h-6" />
+          {uploadSuccess}
+        </div>
+      )}
+
+      {/* 
+        Current Document Card
+        NOTE: We intentionally DO NOT use an <iframe> or <object> here.
+        This prevents the browser from ever rendering "No se pudo cargar el PDF."
+      */}
+      {latestDoc && !uploading && !uploadSuccess && (
+        <div className="mb-6 w-full max-w-md bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
+          <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-3 shadow-inner">
+            <CheckCircleIcon className="w-8 h-8" />
           </div>
-          {latest.reviewComment && (
-            <div className="flex flex-row items-center gap-2 bg-fuchsia-50 border border-fuchsia-200 rounded px-3 py-2 text-xs text-fuchsia-900 mt-1 mb-1 shadow-sm max-w-xl w-full">
-              <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-fuchsia-400" />
-              <span className="break-words">{latest.reviewComment}</span>
-            </div>
-          )}
-          {docs.length > 1 && (
-            <div className="w-full mt-3 px-1">
-              <div className="font-bold text-cyan-900 dark:text-cyan-100 mb-1 text-xs flex items-center gap-2">
-                <DocumentDuplicateIcon className="w-5 h-5 text-cyan-400" />
-                Versiones anteriores
-              </div>
-              <div className="flex flex-col gap-1 max-h-40 overflow-auto">
-                {docs.slice(1).map((doc, idx) => {
-                  if (!doc) return null;
-                  const stat = getStatusMeta(doc.status);
-                  const Icon = stat.icon;
-                  return (
-                    <div key={doc.id || idx} className="flex flex-col gap-0.5 border border-cyan-50 dark:border-slate-800 py-1 px-2 rounded bg-cyan-50/50 dark:bg-slate-800/30 text-[12px]">
-                      <div className="flex flex-row gap-2 items-center">
-                        {doc.filePath ? (
-                          <a
-                            href={doc.filePath}
-                            target="_blank"
-                            className="underline text-cyan-800 dark:text-cyan-200 font-bold break-all"
-                          >{`Versión v${doc.version}`}</a>
-                        ) : (
-                          <span className="text-red-500">Sin archivo PDF</span>
-                        )}
-                        <span className="ml-2 text-slate-500">{formatDateDisplay(doc.uploadedAt)}</span>
-                        <span className={`inline-flex items-center gap-1 ml-2 font-bold text-xs ${
-                          stat.color === "emerald"
-                            ? "text-emerald-700"
-                            : stat.color === "red"
-                            ? "text-red-700"
-                            : "text-slate-400"
-                        }`}>
-                          {Icon && <Icon className="w-4 h-4" />}
-                          {stat.display}
-                        </span>
-                      </div>
-                      {doc.reviewComment && (
-                        <div className="flex flex-row items-center gap-2 bg-fuchsia-50 border border-fuchsia-100 rounded px-2 py-1 text-xs text-fuchsia-900 mt-1 shadow-sm max-w-xl w-full">
-                          <ChatBubbleLeftEllipsisIcon className="w-4 h-4 text-fuchsia-400" />
-                          <span className="break-words">{doc.reviewComment}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </>
-      ) : null}
-      <div className="w-full flex flex-col justify-center items-center mt-3">
-        <DocumentDropzone
-          loading={!!uploading}
-          error={uploadError || ""}
-          onFile={onUpload}
-          accept={accept || "application/pdf"}
+          <h3 className="text-slate-800 font-extrabold text-lg mb-1">Documento guardado exitosamente</h3>
+          <p className="text-slate-500 text-sm font-medium mb-5">
+            Versión {latestDoc.version || 1} • Subido el {new Date(latestDoc.uploadedAt).toLocaleDateString("es-MX")}
+          </p>
+          
+          <a 
+            href={`${latestDoc.filePath}?v=${latestDoc.version || Date.now()}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 bg-white border border-slate-300 text-slate-700 font-bold py-2.5 px-5 rounded-xl shadow-sm hover:bg-slate-100 hover:text-cyan-700 transition-colors focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+          >
+            Ver documento
+            <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+          </a>
+        </div>
+      )}
+
+      {/* Drag & Drop Zone */}
+      <form 
+        onDragEnter={handleDrag} 
+        onSubmit={(e) => e.preventDefault()}
+        className="w-full max-w-md"
+      >
+        <input 
+          ref={inputRef}
+          type="file" 
+          accept={accept} 
+          onChange={handleChange} 
+          className="hidden" 
+          id="file-upload"
         />
-        {typeof uploadProgress === "number" &&
-          <div className="w-full pt-2">
-            <div className="relative w-full h-3 rounded-full overflow-hidden bg-slate-100">
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all"
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
+        <label 
+          htmlFor="file-upload"
+          className={`relative flex flex-col items-center justify-center w-full h-52 border-2 border-dashed rounded-3xl cursor-pointer transition-all ${
+            dragActive 
+              ? "border-cyan-500 bg-cyan-50 shadow-inner" 
+              : "border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-cyan-400"
+          } ${uploading ? "opacity-60 pointer-events-none" : ""}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          {uploading ? (
+            <div className="flex flex-col items-center text-cyan-700">
+              <CloudArrowUpIcon className="w-14 h-14 mb-3 animate-bounce" />
+              <span className="font-extrabold text-lg">Subiendo archivo...</span>
+              {uploadProgress !== null && (
+                <span className="text-sm font-bold mt-1 bg-cyan-100 px-3 py-1 rounded-full">{uploadProgress}%</span>
+              )}
             </div>
-            <div className="text-center text-sm mt-1 font-bold text-cyan-700">{uploadProgress}%</div>
-          </div>
-        }
-        {uploadSuccess && (
-          <div className="flex items-center justify-center gap-2 px-5 py-2 mt-2 rounded-xl text-emerald-800 font-bold shadow bg-emerald-50 border-emerald-200 border animate-pop w-fit min-w-[210px]">
-            <svg className="w-7 h-7 text-emerald-400 animate-sparkle" fill="none" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="#34D399" strokeWidth="3" fill="#A7F3D0"/>
-              <path d="M7 13l3 3 7-7" stroke="#059669" strokeWidth="2.3" fill="none" strokeLinecap="round"/>
-            </svg>
-            <span>{uploadSuccess}</span>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="flex flex-col items-center text-slate-500 p-6 text-center">
+              <DocumentIcon className={`w-14 h-14 mb-3 transition-colors ${dragActive ? "text-cyan-500" : "text-slate-400"}`} />
+              <span className="font-bold text-slate-700 text-base mb-1">
+                Haz clic para seleccionar o arrastra tu archivo aquí
+              </span>
+              <span className="text-sm text-slate-500 font-medium">
+                {accept.includes("pdf") ? "Solo archivos PDF (máx. 20MB)" : "Formatos permitidos: JPG, PNG, PDF"}
+              </span>
+              
+              {/* If a document already exists, clarify that uploading a new one replaces it */}
+              {latestDoc && (
+                <div className="mt-4 inline-flex">
+                  <span className="text-xs font-bold text-cyan-800 bg-cyan-100 px-3 py-1.5 rounded-lg">
+                    Subir un nuevo archivo reemplazará el actual
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </label>
+      </form>
     </div>
   );
 }
