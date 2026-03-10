@@ -50,7 +50,7 @@ export async function POST(req, context) {
 
   const fname = `${type}-${Date.now()}-${nanoid(8)}.pdf`;
 
-  // Perform upload to remote storage
+  // Perform upload to remote storage pointing explicitly to the IIS handler
   const outFormData = new FormData();
   outFormData.append("file", new Blob([fileBuff], { type: file.type }), fname);
   outFormData.append("folder", `documents/${userIdInt}`);

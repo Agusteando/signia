@@ -66,6 +66,7 @@ export async function POST(req, context) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Explicitly point to the IIS handler
     const outFormData = new FormData();
     outFormData.append("file", new Blob([buffer], { type: file.type || "application/octet-stream" }), fileName);
     outFormData.append("folder", `documents/${userId}`);

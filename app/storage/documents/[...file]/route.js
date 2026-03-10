@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// Force Next.js to never statically cache this proxy route
+export const dynamic = "force-dynamic";
+
 export async function GET(req, context) {
   const params = await context.params;
   const fileArr = params.file;
@@ -18,7 +21,8 @@ export async function GET(req, context) {
   const externalUrl = `https://expediente.casitaapps.com/documents/${fileArr.join("/")}`;
 
   try {
-    const res = await fetch(externalUrl);
+    // cache: "no-store" guarantees we fetch the newly uploaded file and don't cache a 404
+    const res = await fetch(externalUrl, { cache: "no-store" });
     if (!res.ok) {
       const errorText = await res.text().catch(() => "");
       console.error("[storage proxy] External fetch failed for path:", externalUrl, "Status:", res.status, errorText.substring(0, 150));
@@ -35,13 +39,18 @@ export async function GET(req, context) {
     else if (ext === "jpg" || ext === "jpeg") contentType = "image/jpeg";
     else if (ext === "png") contentType = "image/png";
 
-    // Streaming the response back to the client directly from memory/buffer
-    return new NextResponse(res.body, {
+    // Buffer the file completely instead of streaming. 
+    // This forces Next.js to calculate and attach a perfect Content-Length header.
+    // Without Content-Length, Chrome/Edge PDF viewers abort and show "No se pudo cargar el PDF".
+    const arrayBuffer = await res.arrayBuffer();
+
+    return new NextResponse(arrayBuffer, {
       status: 200,
       headers: {
         "Content-Type": contentType,
+        "Content-Length": String(arrayBuffer.byteLength),
         "Content-Disposition": `inline; filename="${fileArr[fileArr.length-1]}"`,
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "public, max-age=3600",
       }
     });
   } catch (err) {

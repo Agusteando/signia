@@ -40,7 +40,7 @@ export async function POST(req, context) {
   const ext = file.type === "image/png" ? ".png" : ".jpg";
   const fname = `foto_digital-${Date.now()}-${nanoid(8)}${ext}`;
 
-  // HTTP upload to storage server
+  // HTTP upload to storage server pointing explicitly to the IIS handler
   const outFormData = new FormData();
   outFormData.append("file", new Blob([fileBuff], { type: file.type }), fname);
   outFormData.append("folder", `documents/${userIdInt}`);
