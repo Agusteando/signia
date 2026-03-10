@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
@@ -196,7 +195,10 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
       try {
         const data = JSON.parse(xhr.responseText);
         if (xhr.status !== 200) {
-          setUploadError(data.error || "Error al subir la imagen.");
+          console.error("[Upload Photo] Server error:", xhr.status, data);
+          let errMsg = data.error || `Error HTTP ${xhr.status}`;
+          if (data.details) errMsg += ` (Detalles: ${data.details})`;
+          setUploadError(errMsg);
         } else {
           setUploadSuccess("¡Fotografía cargada! Ya puedes avanzar.");
           if (data.avatarUrl) setUser(u => ({ ...u, picture: data.avatarUrl }));
@@ -204,12 +206,15 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
           successTimeout.current = setTimeout(() => setUploadSuccess(""), 4000);
           fetchExpedienteSteps();
         }
-      } catch {
-        setUploadError("Error al subir.");
+      } catch (err) {
+        console.error("[Upload Photo] Failed to parse JSON response:", xhr.responseText, err);
+        setUploadError(`Error inesperado del servidor HTTP ${xhr.status}.`);
       }
     };
-    xhr.onerror = function () {
-      setUploading(false); setUploadProgress(null); setUploadError("No se pudo subir.");
+    xhr.onerror = function (err) {
+      console.error("[Upload Photo] XHR network error:", err);
+      setUploading(false); setUploadProgress(null); 
+      setUploadError("Fallo de red al intentar subir la fotografía. Verifica tu conexión.");
     };
     xhr.upload.onprogress = function (e) {
       if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
@@ -228,19 +233,25 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
       try {
         const data = JSON.parse(xhr.responseText);
         if (xhr.status !== 200) {
-          setUploadError(data.error || "Error al subir el archivo.");
+          console.error("[Upload Document] Server error:", xhr.status, data);
+          let errMsg = data.error || `Error HTTP ${xhr.status}`;
+          if (data.details) errMsg += ` (Detalles: ${data.details})`;
+          setUploadError(errMsg);
         } else {
           setUploadSuccess("¡Archivo subido! Puedes avanzar al siguiente paso.");
           clearTimeout(successTimeout.current);
           successTimeout.current = setTimeout(() => setUploadSuccess(""), 4000);
           fetchExpedienteSteps();
         }
-      } catch {
-        setUploadError("Error al subir.");
+      } catch (err) {
+        console.error("[Upload Document] Failed to parse JSON response:", xhr.responseText, err);
+        setUploadError(`Error inesperado del servidor HTTP ${xhr.status}.`);
       }
     };
-    xhr.onerror = function () {
-      setUploading(false); setUploadProgress(null); setUploadError("No se pudo subir.");
+    xhr.onerror = function (err) {
+      console.error("[Upload Document] XHR network error:", err);
+      setUploading(false); setUploadProgress(null); 
+      setUploadError("Fallo de red al intentar subir el archivo. Verifica tu conexión.");
     };
     xhr.upload.onprogress = function (e) {
       if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));

@@ -20,7 +20,12 @@ export async function GET(req, context) {
   try {
     const res = await fetch(externalUrl);
     if (!res.ok) {
-      return NextResponse.json({ error: "Archivo no encontrado." }, { status: 404 });
+      const errorText = await res.text().catch(() => "");
+      console.error("[storage proxy] External fetch failed for path:", externalUrl, "Status:", res.status, errorText.substring(0, 150));
+      return NextResponse.json({ 
+        error: "Archivo no encontrado o servidor inaccesible.",
+        details: `HTTP ${res.status} - ${errorText.substring(0, 100)}` 
+      }, { status: res.status === 404 ? 404 : 502 });
     }
     
     // Determine content type accurately for PDF previews and Images
@@ -40,6 +45,10 @@ export async function GET(req, context) {
       }
     });
   } catch (err) {
-    return NextResponse.json({ error: "No se pudo abrir el archivo desde el servidor." }, { status: 500 });
+    console.error("[storage proxy] Network failure contacting external server:", externalUrl, err);
+    return NextResponse.json({ 
+      error: "No se pudo abrir el archivo desde el servidor.",
+      details: err.message
+    }, { status: 500 });
   }
 }

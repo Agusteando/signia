@@ -57,7 +57,7 @@ export async function POST(req, context) {
       }
 
       if (!res.ok) {
-        console.warn("[migrate-proyectivos] Legacy file missing on external server, skipping", { documentId: doc.id });
+        console.warn("[migrate-proyectivos] Legacy file missing on external server, skipping", { documentId: doc.id, status: res.status });
         skippedMissingFile += 1;
         continue;
       }
@@ -77,7 +77,10 @@ export async function POST(req, context) {
           method: "POST",
           body: outFormData
         });
-        if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text().catch(() => "");
+          throw new Error(`Upload failed: ${uploadRes.status} - ${errText}`);
+        }
       } catch (copyErr) {
         console.error("[migrate-proyectivos] Error uploading migrated file", {
           documentId: doc.id,

@@ -31,11 +31,11 @@ export async function POST(req, context) {
 
   // Accept jpeg or png only
   if (!file.type || !/^image\/(jpeg|png)$/.test(file.type)) {
-    return NextResponse.json({ error: "Solo se permiten imágenes JPG o PNG." }, { status: 400 });
+    return NextResponse.json({ error: "Solo se permiten imágenes JPG o PNG.", details: `Tipo detectado: ${file.type}` }, { status: 400 });
   }
   const fileBuff = Buffer.from(await file.arrayBuffer());
   if (fileBuff.length > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: "Imagen demasiado grande (>5MB)" }, { status: 400 });
+    return NextResponse.json({ error: "Imagen demasiado grande (>5MB)", details: `Tamaño: ${fileBuff.length} bytes` }, { status: 400 });
   }
   const ext = file.type === "image/png" ? ".png" : ".jpg";
   const fname = `foto_digital-${Date.now()}-${nanoid(8)}${ext}`;
@@ -46,52 +46,77 @@ export async function POST(req, context) {
   outFormData.append("folder", `documents/${userIdInt}`);
   outFormData.append("path", `documents/${userIdInt}`);
 
+  let uploadRes;
   try {
-    const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+    uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
       method: "POST",
       body: outFormData
     });
-    if (!uploadRes.ok) throw new Error("Storage server upload error");
-  } catch (err) {
-    console.error("[foto_digital upload] Error", err);
-    return NextResponse.json({ error: "Error al guardar la imagen." }, { status: 500 });
+  } catch (netErr) {
+    console.error("[foto_digital upload] Network error contacting storage server:", netErr);
+    return NextResponse.json({ 
+      error: "Error de red al contactar el servidor de almacenamiento externo.", 
+      details: netErr.message 
+    }, { status: 502 });
   }
 
-  // Only one avatar: update user.picture; also store as a Document
-  const url = `/storage/documents/${userIdInt}/${fname}`;
-  await prisma.user.update({
-    where: { id: userIdInt },
-    data: { picture: url }
-  });
+  if (!uploadRes.ok) {
+    const errorText = await uploadRes.text().catch(() => "(Sin respuesta de texto)");
+    console.error("[foto_digital upload] Storage server rejected upload", {
+      status: uploadRes.status,
+      statusText: uploadRes.statusText,
+      body: errorText,
+      userId: userIdInt
+    });
+    return NextResponse.json({ 
+      error: "El servidor de almacenamiento rechazó la imagen.", 
+      details: `HTTP ${uploadRes.status} ${uploadRes.statusText} - ${errorText.substring(0, 300)}` 
+    }, { status: 502 });
+  }
 
-  // Get next version
-  const latest = await prisma.document.findFirst({
-    where: { userId: userIdInt, type: "foto_digital" },
-    orderBy: { version: "desc" },
-    select: { version: true }
-  });
-  const nextVersion = latest ? latest.version + 1 : 1;
+  try {
+    // Only one avatar: update user.picture; also store as a Document
+    const url = `/storage/documents/${userIdInt}/${fname}`;
+    await prisma.user.update({
+      where: { id: userIdInt },
+      data: { picture: url }
+    });
 
-  const doc = await prisma.document.create({
-    data: {
-      userId: userIdInt,
-      type: "foto_digital",
-      filePath: url,
-      status: "accepted",
-      version: nextVersion
-    }
-  });
+    // Get next version
+    const latest = await prisma.document.findFirst({
+      where: { userId: userIdInt, type: "foto_digital" },
+      orderBy: { version: "desc" },
+      select: { version: true }
+    });
+    const nextVersion = latest ? latest.version + 1 : 1;
 
-  // Checklist fulfilled
-  const item = await prisma.checklistItem.create({
-    data: {
-      userId: userIdInt,
-      type: "foto_digital",
-      required: true,
-      fulfilled: true,
-      documentId: doc.id
-    }
-  });
+    const doc = await prisma.document.create({
+      data: {
+        userId: userIdInt,
+        type: "foto_digital",
+        filePath: url,
+        status: "accepted",
+        version: nextVersion
+      }
+    });
 
-  return NextResponse.json({ ok: true, id: doc.id, filePath: doc.filePath, checklistItemId: item.id, avatarUrl: url });
+    // Checklist fulfilled
+    const item = await prisma.checklistItem.create({
+      data: {
+        userId: userIdInt,
+        type: "foto_digital",
+        required: true,
+        fulfilled: true,
+        documentId: doc.id
+      }
+    });
+
+    return NextResponse.json({ ok: true, id: doc.id, filePath: doc.filePath, checklistItemId: item.id, avatarUrl: url });
+  } catch (dbErr) {
+    console.error("[foto_digital upload] Database error post-upload:", dbErr);
+    return NextResponse.json({ 
+      error: "La imagen se subió pero ocurrió un error en la base de datos.", 
+      details: dbErr.message 
+    }, { status: 500 });
+  }
 }

@@ -78,13 +78,20 @@ export async function POST(req, context) {
       fileName
     });
 
-    const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
-      method: "POST",
-      body: outFormData,
-    });
+    let uploadRes;
+    try {
+      uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+        method: "POST",
+        body: outFormData,
+      });
+    } catch (netErr) {
+      console.error("[admin-upload-doc] Network error contacting storage server:", netErr);
+      throw new Error(`Fallo de red conectando al servidor externo: ${netErr.message}`);
+    }
 
     if (!uploadRes.ok) {
-      throw new Error(`External storage upload failed: HTTP ${uploadRes.status}`);
+      const errorText = await uploadRes.text().catch(() => "(Sin respuesta de texto)");
+      throw new Error(`External storage upload failed: HTTP ${uploadRes.status} ${uploadRes.statusText} - ${errorText.substring(0, 300)}`);
     }
 
     // URL path exposed to the browser
@@ -143,7 +150,10 @@ export async function POST(req, context) {
     }
 
     return NextResponse.json(
-      { error: "Error al procesar y guardar el archivo." },
+      { 
+        error: "Error al procesar y guardar el archivo.",
+        details: err?.message || "Excepción desconocida."
+      },
       { status: 500 }
     );
   }

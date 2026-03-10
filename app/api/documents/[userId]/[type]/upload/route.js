@@ -11,12 +11,12 @@ export async function POST(req, context) {
   const allowedTypes = stepsExpediente.filter(s => !s.signable).map(s => s.key);
 
   if (!allowedTypes.includes(type)) {
-    return NextResponse.json({ error: "Tipo de documento no permitido." }, { status: 400 });
+    return NextResponse.json({ error: "Tipo de documento no permitido.", details: `Recibido: ${type}` }, { status: 400 });
   }
 
   const userIdInt = Number(userId);
   if (!Number.isFinite(userIdInt)) {
-    return NextResponse.json({ error: "ID de usuario inválido." }, { status: 400 });
+    return NextResponse.json({ error: "ID de usuario inválido.", details: `Recibido: ${userId}` }, { status: 400 });
   }
 
   const session = await getServerSession(authOptions);
@@ -41,11 +41,11 @@ export async function POST(req, context) {
   const file = formData.get("file");
   if (!file) return NextResponse.json({ error: "Falta archivo." }, { status: 400 });
   if (!file.type || file.type !== "application/pdf") {
-    return NextResponse.json({ error: "Solo se permite PDF." }, { status: 400 });
+    return NextResponse.json({ error: "Solo se permite PDF.", details: `Tipo detectado: ${file.type}` }, { status: 400 });
   }
   const fileBuff = Buffer.from(await file.arrayBuffer());
   if (fileBuff.length > 20 * 1024 * 1024) {
-    return NextResponse.json({ error: "Archivo demasiado grande (>20MB)" }, { status: 400 });
+    return NextResponse.json({ error: "Archivo demasiado grande (>20MB)", details: `Tamaño: ${fileBuff.length} bytes` }, { status: 400 });
   }
 
   const fname = `${type}-${Date.now()}-${nanoid(8)}.pdf`;
@@ -56,57 +56,83 @@ export async function POST(req, context) {
   outFormData.append("folder", `documents/${userIdInt}`);
   outFormData.append("path", `documents/${userIdInt}`);
 
+  let uploadRes;
   try {
-    const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+    uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
       method: "POST",
       body: outFormData
     });
-    if (!uploadRes.ok) throw new Error("Storage server error");
-  } catch (err) {
-    console.error("[document upload] Error", err);
-    return NextResponse.json({ error: "Error al guardar el archivo." }, { status: 500 });
+  } catch (netErr) {
+    console.error("[document upload] Network error contacting storage server:", netErr);
+    return NextResponse.json({ 
+      error: "Error de red al contactar el servidor de almacenamiento externo.", 
+      details: netErr.message 
+    }, { status: 502 });
   }
 
-  // Get new version number for user/type
-  const latest = await prisma.document.findFirst({
-    where: { userId: userIdInt, type },
-    orderBy: { version: "desc" },
-    select: { version: true }
-  });
-  const nextVersion = latest ? latest.version + 1 : 1;
-
-  // Create new document record (append versioning)
-  const doc = await prisma.document.create({
-    data: {
+  if (!uploadRes.ok) {
+    const errorText = await uploadRes.text().catch(() => "(Sin respuesta de texto)");
+    console.error("[document upload] Storage server rejected upload", {
+      status: uploadRes.status,
+      statusText: uploadRes.statusText,
+      body: errorText,
       userId: userIdInt,
-      type,
-      filePath: `/storage/documents/${userIdInt}/${fname}`,
-      status: "accepted", 
-      version: nextVersion
-    }
-  });
+      type
+    });
+    return NextResponse.json({ 
+      error: "El servidor de almacenamiento rechazó el archivo.", 
+      details: `HTTP ${uploadRes.status} ${uploadRes.statusText} - ${errorText.substring(0, 300)}` 
+    }, { status: 502 });
+  }
 
-  // ChecklistItem linkage
-  const checklistUnique = { userId_type: { userId: userIdInt, type } };
-  await prisma.checklistItem.upsert({
-    where: checklistUnique,
-    update: {
-      fulfilled: true,
-      documentId: doc.id
-    },
-    create: {
-      userId: userIdInt,
-      type,
-      required: true,
-      fulfilled: true,
-      documentId: doc.id
-    }
-  });
+  try {
+    // Get new version number for user/type
+    const latest = await prisma.document.findFirst({
+      where: { userId: userIdInt, type },
+      orderBy: { version: "desc" },
+      select: { version: true }
+    });
+    const nextVersion = latest ? latest.version + 1 : 1;
 
-  return NextResponse.json({
-    ok: true,
-    id: doc.id,
-    filePath: doc.filePath,
-    checklistItemId: doc.id,
-  });
+    // Create new document record (append versioning)
+    const doc = await prisma.document.create({
+      data: {
+        userId: userIdInt,
+        type,
+        filePath: `/storage/documents/${userIdInt}/${fname}`,
+        status: "accepted", 
+        version: nextVersion
+      }
+    });
+
+    // ChecklistItem linkage
+    const checklistUnique = { userId_type: { userId: userIdInt, type } };
+    await prisma.checklistItem.upsert({
+      where: checklistUnique,
+      update: {
+        fulfilled: true,
+        documentId: doc.id
+      },
+      create: {
+        userId: userIdInt,
+        type,
+        required: true,
+        fulfilled: true,
+        documentId: doc.id
+      }
+    });
+
+    return NextResponse.json({
+      ok: true,
+      id: doc.id,
+      filePath: doc.filePath,
+      checklistItemId: doc.id,
+    });
+  } catch (dbErr) {
+    console.error("[document upload] Database error post-upload:", dbErr);
+    return NextResponse.json({ 
+      error: "El archivo se subió pero ocurrió un error en la base de datos.", 
+      details: dbErr.message 
+    }, { status: 500 });
+  }
 }
