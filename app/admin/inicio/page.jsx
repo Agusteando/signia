@@ -30,15 +30,13 @@ export default async function AdminInicioPage({ searchParams }) {
 
   if (!session || !["admin", "superadmin"].includes(session.role)) {
     return (
-      <div className="p-10 text-center text-red-700 font-bold">
+      <div className="p-10 text-center text-red-700 font-medium">
         No autorizado. Inicia sesión como administrador.
       </div>
     );
   }
 
-  // AUTO-CORRECCIÓN RETROACTIVA:
-  // Convertir automáticamente a los candidatos que ya tengan fecha de ingreso en empleados aprobados.
-  // Esto asegura que "simplemente suceda" para el histórico sin intervención manual.
+  // AUTO-CORRECCIÓN RETROACTIVA
   await prisma.user.updateMany({
     where: {
       role: "candidate",
@@ -172,16 +170,16 @@ export default async function AdminInicioPage({ searchParams }) {
 
   return (
     <AdminInicioClient session={session} showSidebar={session.role === "superadmin"}>
-      <div className="flex-1 w-full bg-[#f8fafc] relative pb-20">
+      <div className="flex-1 w-full relative pb-20">
         
-        {/* Top Header con fondo oscuro elegante para crear contraste */}
-        <div className="sticky top-0 z-40 bg-[#0f172a] text-white border-b border-slate-800 shadow-xl px-6 sm:px-10 py-6">
+        {/* Modern, calm header. Removed high contrast backgrounds. */}
+        <div className="glass-panel sticky top-0 z-40 px-6 sm:px-10 py-5">
           <div className="max-w-screen-2xl mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-1">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 mb-0.5">
                 Panel de Control
               </h1>
-              <p className="text-sm text-indigo-200 font-medium opacity-90">Resumen y auditoría de personal</p>
+              <p className="text-sm text-slate-500 font-medium">Resumen y auditoría de personal</p>
             </div>
             <AdminDashboardStats
               summary={{
@@ -194,7 +192,7 @@ export default async function AdminInicioPage({ searchParams }) {
           </div>
         </div>
         
-        <div className="max-w-screen-2xl mx-auto w-full px-6 sm:px-10 py-8 flex flex-col gap-12">
+        <div className="max-w-screen-2xl mx-auto w-full px-6 sm:px-10 py-8 flex flex-col gap-8">
           
           {session.role === "superadmin" && (
             <section id="hr-insights">
@@ -217,17 +215,17 @@ export default async function AdminInicioPage({ searchParams }) {
           </section>
           
           {session.role === "superadmin" && (
-            <section id="settings" className="border-t-2 border-slate-200/60 pt-10">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración de Plataforma</h2>
-                <p className="text-base text-slate-500 mt-1">Administra catálogos, firmas de autoridades y permisos por plantel.</p>
+            <section id="settings" className="border-t border-slate-200/80 pt-10 mt-4">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Configuración de Plataforma</h2>
+                <p className="text-sm text-slate-500 mt-1">Administra catálogos, firmas de autoridades y permisos por plantel.</p>
               </div>
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                <div className="flex flex-col gap-8 w-full">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+                <div className="flex flex-col gap-6 w-full">
                   <PuestoAdminPanelClient />
                   <PlantelSignatureNamesPanel />
                 </div>
-                <div className="flex flex-col gap-8 w-full">
+                <div className="flex flex-col gap-6 w-full">
                   <PlantelListAdminPanelClient initialPlanteles={planteles} onRefresh={null} />
                   <PlantelAdminMatrixCrudClient />
                 </div>

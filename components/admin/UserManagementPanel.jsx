@@ -20,7 +20,7 @@ export default function UserManagementPanel({
   const [filter, setFilter] = useState("");
   const [plantelFilter, setPlantelFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all"); // Governed by TABS
+  const [statusFilter, setStatusFilter] = useState("all"); 
   const [activeFilter, setActiveFilter] = useState("todos");
   
   const [selection, setSelection] = useState({});
@@ -131,14 +131,18 @@ export default function UserManagementPanel({
   }
 
   return (
-    <div className="w-full flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl relative">
+    <div className="w-full flex flex-col card-elevated relative overflow-hidden">
       {/* Top Header & Tabs */}
-      <div className="px-6 pt-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200">
-         <div className="flex space-x-6 w-full md:w-auto overflow-x-auto no-scrollbar">
+      <div className="px-6 pt-5 pb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100">
+         <div className="flex space-x-1 w-full md:w-auto overflow-x-auto no-scrollbar bg-slate-100/60 p-1 rounded-lg border border-slate-200/50">
            {TABS.map(tab => (
              <button
                key={tab.id}
-               className={`pb-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${statusFilter === tab.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+               className={`px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all rounded-md ${
+                 statusFilter === tab.id 
+                   ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5' 
+                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
+               }`}
                onClick={() => setStatusFilter(tab.id)}
              >
                {tab.label}
@@ -146,12 +150,12 @@ export default function UserManagementPanel({
            ))}
          </div>
          {["superadmin", "admin"].includes(adminRole) && (
-           <div className="pb-3 md:pb-0">
+           <div className="pb-1 md:pb-0">
              <button
                type="button"
                onClick={handleExcelExport}
                disabled={exporting}
-               className="flex items-center gap-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-4 py-2 rounded-lg transition text-xs sm:text-sm disabled:opacity-70"
+               className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium px-4 py-2 rounded-lg transition text-xs sm:text-sm shadow-sm disabled:opacity-70"
              >
                <ArrowDownTrayIcon className="w-4 h-4" />
                {exporting ? "Generando..." : "Exportar Excel"}
@@ -161,32 +165,32 @@ export default function UserManagementPanel({
       </div>
 
       {/* Filter Bar */}
-      <div className="px-6 py-4 flex flex-wrap items-center gap-3 bg-slate-50/50">
+      <div className="px-6 py-4 flex flex-wrap items-center gap-3 bg-white border-b border-slate-100">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input 
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200/60 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-slate-900/5 focus:border-slate-300 transition-all outline-none text-slate-800 placeholder:text-slate-400"
             placeholder="Buscar por nombre o correo..."
             value={filter}
             onChange={e => setFilter(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 shadow-sm">
+        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-lg px-2 hover:bg-white transition-colors cursor-pointer">
           <FunnelIcon className="w-4 h-4 text-slate-400 ml-2" />
-          <select className="py-2 px-2 text-sm text-slate-700 outline-none bg-transparent appearance-none min-w-[120px]" value={plantelFilter} onChange={e => setPlantelFilter(e.target.value)}>
+          <select className="py-2 px-2 text-sm text-slate-600 outline-none bg-transparent appearance-none min-w-[120px] font-medium cursor-pointer" value={plantelFilter} onChange={e => setPlantelFilter(e.target.value)}>
             <option value="">Plantel (Todos)</option>
             {planteles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 shadow-sm">
-          <select className="py-2 px-2 text-sm text-slate-700 outline-none bg-transparent appearance-none min-w-[100px]" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-lg px-2 hover:bg-white transition-colors cursor-pointer">
+          <select className="py-2 px-2 text-sm text-slate-600 outline-none bg-transparent appearance-none min-w-[100px] font-medium cursor-pointer" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
             <option value="all">Rol (Todos)</option>
             <option value="candidate">Candidatos</option>
             <option value="employee">Empleados</option>
           </select>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 shadow-sm">
-          <select className="py-2 px-2 text-sm text-slate-700 outline-none bg-transparent appearance-none" value={activeFilter} onChange={e => setActiveFilter(e.target.value)}>
+        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-lg px-2 hover:bg-white transition-colors cursor-pointer">
+          <select className="py-2 px-2 text-sm text-slate-600 outline-none bg-transparent appearance-none font-medium cursor-pointer" value={activeFilter} onChange={e => setActiveFilter(e.target.value)}>
             <option value="todos">Actividad (Todas)</option>
             <option value="activos">Sólo activos</option>
             <option value="bajas">Sólo bajas</option>
@@ -195,9 +199,9 @@ export default function UserManagementPanel({
       </div>
 
       {feedback.message && (
-        <div className={`mx-6 mt-0 mb-4 px-4 py-2 rounded-lg font-medium text-xs sm:text-sm border flex items-center gap-2 animate-fade-in ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : feedback.type === "error" ? "bg-red-50 text-red-800 border-red-200" : "bg-indigo-50 text-indigo-800 border-indigo-200"}`}>
-          {feedback.type === "success" && <CheckCircleIcon className="w-5 h-5" />}
-          {feedback.type === "error" && <XCircleIcon className="w-5 h-5" />}
+        <div className={`mx-6 mt-4 mb-2 px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm border flex items-center gap-2 animate-fade-in shadow-sm ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : feedback.type === "error" ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200"}`}>
+          {feedback.type === "success" && <CheckCircleIcon className="w-5 h-5 text-emerald-600" />}
+          {feedback.type === "error" && <XCircleIcon className="w-5 h-5 text-rose-600" />}
           {feedback.message}
         </div>
       )}
@@ -224,16 +228,16 @@ export default function UserManagementPanel({
       </div>
       
       {/* Bottom Pagination */}
-      <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex flex-wrap items-center justify-between text-sm text-slate-600 gap-4">
-        <div className="flex items-center gap-3">
-          <span>Mostrando página <strong>{page}</strong> de {totalPages}</span>
-          <select className="border border-slate-200 rounded bg-white px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
+      <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between text-sm text-slate-500 gap-4">
+        <div className="flex items-center gap-3 font-medium">
+          <span>Mostrando página <strong className="text-slate-800">{page}</strong> de {totalPages}</span>
+          <select className="border border-slate-200 rounded-md bg-white px-2 py-1 outline-none focus:ring-2 focus:ring-slate-900/5 transition-shadow" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
             {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s} filas</option>)}
           </select>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-50 transition" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><ChevronLeftIcon className="w-4 h-4" /></button>
-          <button className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-50 transition" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}><ChevronRightIcon className="w-4 h-4" /></button>
+          <button className="px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><ChevronLeftIcon className="w-4 h-4 text-slate-600" /></button>
+          <button className="px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}><ChevronRightIcon className="w-4 h-4 text-slate-600" /></button>
         </div>
       </div>
 

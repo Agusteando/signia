@@ -10,7 +10,6 @@ import PlantelProgressPanel from "@/components/admin/PlantelProgressPanel";
 import PlantelAdminMatrixCrudClient from "@/components/admin/PlantelAdminMatrixCrudClient";
 import AdminInicioClient from "@/components/admin/AdminInicioClient";
 import { stepsExpediente } from "@/components/stepMetaExpediente";
-import { LightBulbIcon } from "@heroicons/react/24/solid";
 import PlantelSignatureNamesPanel from "@/components/admin/PlantelSignatureNamesPanel";
 import PuestoAdminPanelClient from "@/components/admin/PuestoAdminPanelClient";
 
@@ -30,7 +29,7 @@ export default async function AdminInicioPage({ searchParams }) {
 
   if (!session || !["admin", "superadmin"].includes(session.role)) {
     return (
-      <div className="p-10 text-center text-red-700 font-bold">
+      <div className="p-10 text-center text-red-700 font-medium">
         No autorizado. Inicia sesión como administrador.
       </div>
     );
@@ -154,12 +153,13 @@ export default async function AdminInicioPage({ searchParams }) {
       {/* Fallback support for existing AdminNav */}
       <AdminNav session={session} />
       
-      <div className="flex-1 w-full bg-slate-50 relative h-screen overflow-y-auto overflow-x-hidden">
-        {/* Sticky Top Summary */}
-        <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-6 sm:px-10 py-5">
+      <div className="flex-1 w-full relative h-screen overflow-y-auto overflow-x-hidden font-sans">
+        
+        {/* Top Header */}
+        <div className="glass-panel sticky top-0 z-40 px-6 sm:px-10 py-5">
           <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard General</h1>
+              <h1 className="text-2xl font-semibold text-slate-900 tracking-tight mb-0.5">Dashboard General</h1>
               <p className="text-sm text-slate-500 font-medium">Resumen y auditoría de expedientes laborales</p>
             </div>
             <AdminDashboardStats
@@ -175,7 +175,7 @@ export default async function AdminInicioPage({ searchParams }) {
           </div>
         </div>
         
-        <div className="max-w-screen-2xl mx-auto w-full px-6 sm:px-10 py-8 flex flex-col gap-10">
+        <div className="max-w-screen-2xl mx-auto w-full px-6 sm:px-10 py-8 flex flex-col gap-8">
           <section id="user-management">
             <UserManagementPanel
               users={users}
@@ -191,17 +191,17 @@ export default async function AdminInicioPage({ searchParams }) {
           </section>
           
           {session.role === "superadmin" && (
-            <section id="settings" className="border-t border-slate-200 pt-10">
+            <section id="settings" className="border-t border-slate-200/80 pt-10 mt-4">
               <div className="mb-6">
-                <h2 className="text-lg font-bold text-slate-900">Configuración de Plataforma</h2>
-                <p className="text-sm text-slate-500">Administra catálogos, firmas de autoridades y permisos por plantel.</p>
+                <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Configuración de Plataforma</h2>
+                <p className="text-sm text-slate-500 mt-1">Administra catálogos, firmas de autoridades y permisos por plantel.</p>
               </div>
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-                <div className="flex flex-col gap-8 w-full">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+                <div className="flex flex-col gap-6 w-full">
                   <PuestoAdminPanelClient />
                   <PlantelSignatureNamesPanel />
                 </div>
-                <div className="flex flex-col gap-8 w-full">
+                <div className="flex flex-col gap-6 w-full">
                   <PlantelListAdminPanelClient initialPlanteles={planteles} onRefresh={null} />
                   <PlantelAdminMatrixCrudClient />
                 </div>

@@ -5,9 +5,8 @@ import AdminSidebar, { AdminMobileSidebarToggle } from "@/components/admin/Admin
 export default function AdminInicioClient({ children, showSidebar }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Removidos los bloqueos de scroll "h-screen" y "overflow-hidden"
   return (
-    <div className="w-full min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-row">
+    <div className="w-full min-h-screen bg-[#FAFAFA] text-slate-900 font-sans flex flex-row">
       {showSidebar && (
         <>
           <AdminSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />

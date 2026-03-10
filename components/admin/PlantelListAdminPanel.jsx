@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { PlusCircleIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 export default function PlantelListAdminPanel() {
   const [planteles, setPlanteles] = useState([]);
@@ -139,57 +139,55 @@ export default function PlantelListAdminPanel() {
   }
 
   return (
-    <div id="plantel-list-admin" className="w-full bg-white border border-slate-200 shadow-sm rounded-xl p-5 mb-6">
+    <div className="w-full card-elevated p-5">
       <header className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-3 font-semibold text-slate-900 text-lg">
-          <span>Administrar Planteles</span>
+        <h2 className="font-semibold text-slate-900 text-base">Administrar Planteles</h2>
+        <div className="flex items-center gap-2">
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 transition text-white text-sm rounded-md shadow-sm font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 transition text-white text-sm rounded-lg shadow-sm font-medium"
             onClick={() => setAddOpen(true)}
             type="button"
-            aria-label="Agregar nuevo plantel"
           >
-            <PlusCircleIcon className="w-4 h-4 text-white" /> Nuevo Plantel
+            <PlusIcon className="w-4 h-4" /> Nuevo
+          </button>
+          <button className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition" onClick={fetchPlanteles} title="Refrescar">
+            <ArrowPathIcon className="w-4 h-4 text-slate-500" />
           </button>
         </div>
-        <button className="p-1.5 rounded-md hover:bg-slate-100 transition" aria-label="Recargar" onClick={fetchPlanteles} title="Refrescar">
-          <ArrowPathIcon className="w-4 h-4 text-slate-500" />
-        </button>
       </header>
       
       {msg && (
-        <div className="mb-4 text-center text-sm font-medium px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700">{msg}</div>
+        <div className="mb-4 text-center text-xs font-medium px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700">{msg}</div>
       )}
       
-      <div className="w-full overflow-x-auto border border-slate-200 rounded-xl">
+      <div className="w-full overflow-x-auto border border-slate-200/80 rounded-xl">
         {!dataLoaded ? (
-          <div className="text-center p-8 text-slate-500 font-medium text-sm bg-slate-50">Cargando datos&hellip;</div>
+          <div className="text-center p-8 text-slate-500 font-medium text-sm bg-slate-50/50">Cargando datos&hellip;</div>
         ) : (
           <table className="min-w-full table-auto text-xs sm:text-sm bg-white">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
-                <th className="px-4 py-3 text-left font-semibold">ID</th>
-                <th className="px-4 py-3 text-left font-semibold">Nombre interno</th>
-                <th className="px-4 py-3 text-left font-semibold">Nombre comercial</th>
-                <th className="px-4 py-3 text-left font-semibold">Acciones</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200/60 uppercase text-[10px] tracking-wider text-slate-500">
+                <th className="px-4 py-3 text-left font-medium">ID</th>
+                <th className="px-4 py-3 text-left font-medium">Nombre interno</th>
+                <th className="px-4 py-3 text-left font-medium">Nombre comercial</th>
+                <th className="px-4 py-3 text-left font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {planteles.map((p) => (
-                <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                  <td className="px-4 py-3 font-medium text-slate-600">{p.id}</td>
-                  <td className="px-4 py-3 font-mono text-slate-800">
+                <tr key={p.id} className="border-b border-slate-100/80 hover:bg-slate-50/50 transition">
+                  <td className="px-4 py-3 font-medium text-slate-500">{p.id}</td>
+                  <td className="px-4 py-3 font-mono text-slate-700">
                     {editId === p.id ? (
                       <input
                         type="text"
                         value={editName}
                         onChange={e => setEditName(e.target.value)}
-                        className="rounded-md border border-slate-300 px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="rounded-md border border-slate-200 px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 shadow-sm"
                         disabled={editLoading}
                         autoFocus
                         style={{ minWidth: 120 }}
                         maxLength={80}
-                        aria-label="Nuevo nombre del plantel"
                       />
                     ) : (
                       p.name
@@ -202,27 +200,13 @@ export default function PlantelListAdminPanel() {
                           type="text"
                           value={editLabel ?? ""}
                           onChange={e => setEditLabel(e.target.value)}
-                          className="rounded-md border border-slate-300 px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="rounded-md border border-slate-200 px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 shadow-sm"
                           disabled={editLoading}
                           style={{ minWidth: 140 }}
                           maxLength={100}
-                          aria-label="Nueva etiqueta"
                         />
-                        <button
-                          type="submit"
-                          disabled={editLoading || !(editLabel || "").trim()}
-                          className="bg-indigo-600 text-white py-1.5 px-3 rounded-md shadow-sm text-xs font-medium hover:bg-indigo-700 transition"
-                        >
-                          Guardar
-                        </button>
-                        <button
-                          type="button"
-                          className="py-1.5 px-3 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-medium hover:bg-slate-50 transition"
-                          onClick={handleEditCancel}
-                          disabled={editLoading}
-                        >
-                          Cancelar
-                        </button>
+                        <button type="submit" disabled={editLoading || !(editLabel || "").trim()} className="bg-slate-900 text-white py-1.5 px-3 rounded-md shadow-sm text-xs font-medium hover:bg-slate-800 transition">Guardar</button>
+                        <button type="button" className="py-1.5 px-3 rounded-md border border-slate-200 bg-white text-slate-700 text-xs font-medium hover:bg-slate-50 transition" onClick={handleEditCancel} disabled={editLoading}>Cancelar</button>
                       </form>
                     ) : (
                       p.label || ""
@@ -231,37 +215,22 @@ export default function PlantelListAdminPanel() {
                   <td className="px-4 py-3 flex gap-1.5">
                     <button
                       onClick={() => handleEditOpen(p.id, p.name, p.label)}
-                      className="hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 p-1.5 rounded-md transition"
-                      title="Editar plantel"
+                      className="hover:bg-slate-100 text-slate-400 hover:text-slate-900 p-1.5 rounded-md transition"
                       aria-label="Editar"
                     >
-                      <PencilSquareIcon className="w-5 h-5" />
+                      <PencilSquareIcon className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteTry(p.id)}
-                      className="hover:bg-red-50 text-slate-400 hover:text-red-600 p-1.5 rounded-md transition"
-                      title="Eliminar plantel"
+                      className="hover:bg-rose-50 text-slate-400 hover:text-rose-600 p-1.5 rounded-md transition"
                       aria-label="Eliminar"
                     >
-                      <TrashIcon className="w-5 h-5" />
+                      <TrashIcon className="w-4 h-4" />
                     </button>
                     {deleteId === p.id && (
-                      <span className="ml-3 flex gap-2 items-center bg-red-50 px-3 py-1.5 rounded-md border border-red-100">
-                        <button
-                          onClick={handleDeleteConfirm}
-                          disabled={deleteLoading}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md font-medium text-xs shadow-sm transition"
-                          type="button"
-                        >
-                          Sí, Borrar
-                        </button>
-                        <button
-                          onClick={handleDeleteCancel}
-                          className="text-xs font-medium px-2 py-1 text-slate-600 hover:text-slate-900 transition"
-                          type="button"
-                        >
-                          Cancelar
-                        </button>
+                      <span className="ml-2 flex gap-2 items-center bg-rose-50 px-3 py-1.5 rounded-md border border-rose-100">
+                        <button onClick={handleDeleteConfirm} disabled={deleteLoading} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-md font-medium text-xs shadow-sm transition" type="button">Sí, Borrar</button>
+                        <button onClick={handleDeleteCancel} className="text-xs font-medium px-2 py-1 text-slate-600 hover:text-slate-900 transition" type="button">Cancelar</button>
                       </span>
                     )}
                   </td>
@@ -273,16 +242,16 @@ export default function PlantelListAdminPanel() {
       </div>
       
       {addOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl px-7 py-8 max-w-sm w-full shadow-2xl border border-slate-200 flex flex-col items-center">
+        <div className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-200">
             <h3 className="font-semibold text-lg text-slate-900 mb-4">Agregar Nuevo Plantel</h3>
-            <form onSubmit={handleAddPlantel} className="w-full flex flex-col items-stretch gap-4">
+            <form onSubmit={handleAddPlantel} className="flex flex-col gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Nombre interno (administrativo)</label>
+                <label className="text-xs font-medium text-slate-700 mb-1.5 block">Nombre interno (administrativo)</label>
                 <input
                   ref={addInputRef}
                   type="text"
-                  className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-colors"
                   maxLength={80}
                   required
                   autoFocus
@@ -293,10 +262,10 @@ export default function PlantelListAdminPanel() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-1.5 block">Nombre comercial</label>
+                <label className="text-xs font-medium text-slate-700 mb-1.5 block">Nombre comercial</label>
                 <input
                   type="text"
-                  className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-colors"
                   maxLength={100}
                   required
                   value={addLabel}
@@ -305,22 +274,9 @@ export default function PlantelListAdminPanel() {
                   placeholder="Ej: Plantel 21 de Marzo"
                 />
               </div>
-              <div className="flex gap-3 justify-end items-center mt-2">
-                <button
-                  type="button"
-                  disabled={addLoading}
-                  className="text-sm font-medium px-4 py-2 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
-                  onClick={() => { setAddOpen(false); setAddName(""); setAddLabel(""); }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md px-5 py-2 shadow-sm transition disabled:opacity-50"
-                  disabled={addLoading || !(addName || "").trim() || !(addLabel || "").trim()}
-                >
-                  {addLoading ? "Guardando..." : "Crear Plantel"}
-                </button>
+              <div className="flex gap-2 justify-end mt-2">
+                <button type="button" disabled={addLoading} className="text-sm font-medium px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition" onClick={() => { setAddOpen(false); setAddName(""); setAddLabel(""); }}>Cancelar</button>
+                <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-lg px-5 py-2 shadow-sm transition disabled:opacity-50" disabled={addLoading || !(addName || "").trim() || !(addLabel || "").trim()}>{addLoading ? "Guardando..." : "Crear Plantel"}</button>
               </div>
             </form>
           </div>

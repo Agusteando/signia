@@ -131,3 +131,57 @@ model Signature {
   mifielData Json?
   createdAt  DateTime  @default(now())
 }
+
+model IngressioEmployee {
+  id String @id @default(cuid())
+  idEmpleado String @unique
+  idPersona String?
+  nombreCompleto String?
+  nombre String?
+  apellidoPaterno String?
+  apellidoMaterno String?
+  curp String?
+  rfc String?
+  nin String?
+  correo String?
+  fechaNacimiento DateTime?
+  fechaIngreso DateTime?
+  fechaBaja DateTime?
+  sueldo Decimal?
+  esActivo Boolean?
+  claveNomina String?
+  claveUnica String?
+  idArea Int?
+  claveArea String?
+  idPuesto Int?
+  clavePuesto String?
+  idDepartamento Int?
+  claveDepartamento String?
+  rawJson String? // Snapshot of raw SOAP XML payload
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  matches IdentityMatch[]
+}
+
+model IdentityMatch {
+  id String @id @default(cuid())
+  ingressioId String
+  signiaUserId Int?
+  confidenceScore Int
+  matchReason String
+  status String @default("PENDING") // PENDING, APPROVED, REJECTED
+  ingressioEmployee IngressioEmployee @relation(fields: [ingressioId], references: [idEmpleado])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditEvent {
+  id String @id @default(cuid())
+  adminId Int
+  signiaUserId Int
+  action String
+  oldValue String?
+  newValue String?
+  field String
+  createdAt DateTime @default(now())
+}
