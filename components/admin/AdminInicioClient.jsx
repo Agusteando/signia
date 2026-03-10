@@ -2,25 +2,21 @@
 import { useState } from "react";
 import AdminSidebar, { AdminMobileSidebarToggle } from "@/components/admin/AdminSidebar";
 
-export default function AdminInicioClient({
-  children,
-  showSidebar
-}) {
+export default function AdminInicioClient({ children, showSidebar }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Removidos los bloqueos de scroll "h-screen" y "overflow-hidden"
   return (
-    <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="flex min-h-screen w-full pt-[68px]">
-        {showSidebar && (
-          <>
-            <AdminSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            <AdminMobileSidebarToggle onClick={() => setMobileOpen(true)} />
-          </>
-        )}
-        <main className="flex-1 w-full min-w-0 max-w-full flex flex-col">
-          {children}
-        </main>
-      </div>
+    <div className="w-full min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-row">
+      {showSidebar && (
+        <>
+          <AdminSidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+          <AdminMobileSidebarToggle onClick={() => setMobileOpen(true)} />
+        </>
+      )}
+      <main className="flex-1 min-w-0 flex flex-col relative min-h-screen">
+        {children}
+      </main>
     </div>
   );
 }

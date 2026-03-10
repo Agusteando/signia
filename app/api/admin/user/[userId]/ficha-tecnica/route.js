@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSessionFromCookies } from "@/lib/auth";
@@ -59,14 +58,16 @@ export async function PATCH(req, context) {
     else toUpdate.plantelId = Number(toUpdate.plantelId) || null;
   }
 
-  // Auto-assign role=employee if fechaIngreso present and user was candidate
-  if (
-    (toUpdate.fechaIngreso !== undefined && toUpdate.fechaIngreso !== null && toUpdate.fechaIngreso !== "") ||
-    (data.fechaIngreso !== undefined && data.fechaIngreso !== null && data.fechaIngreso !== "")
-  ) {
-    const existingUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
-    if (existingUser && existingUser.role === "candidate") {
+  // Auto-assign role=employee and isApproved=true if fechaIngreso present and user was active candidate
+  if (toUpdate.fechaIngreso) {
+    const existingUser = await prisma.user.findUnique({ 
+      where: { id: userId }, 
+      select: { role: true, isActive: true } 
+    });
+    
+    if (existingUser && existingUser.role === "candidate" && existingUser.isActive !== false) {
       toUpdate.role = "employee";
+      toUpdate.isApproved = true;
     }
   }
 
@@ -79,6 +80,7 @@ export async function PATCH(req, context) {
         name: true,
         email: true,
         role: true,
+        isApproved: true,
         plantelId: true,
         fechaIngreso: true,
         nss: true,

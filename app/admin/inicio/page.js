@@ -9,8 +9,8 @@ import PlantelListAdminPanelClient from "@/components/admin/PlantelListAdminPane
 import PlantelProgressPanel from "@/components/admin/PlantelProgressPanel";
 import PlantelAdminMatrixCrudClient from "@/components/admin/PlantelAdminMatrixCrudClient";
 import AdminInicioClient from "@/components/admin/AdminInicioClient";
-import HRInsightsDashboard from "@/components/admin/HRInsightsDashboard";
 import { stepsExpediente } from "@/components/stepMetaExpediente";
+import { LightBulbIcon } from "@heroicons/react/24/solid";
 import PlantelSignatureNamesPanel from "@/components/admin/PlantelSignatureNamesPanel";
 import PuestoAdminPanelClient from "@/components/admin/PuestoAdminPanelClient";
 
@@ -36,21 +36,6 @@ export default async function AdminInicioPage({ searchParams }) {
     );
   }
 
-  // AUTO-CORRECCIÓN RETROACTIVA:
-  // Convertir automáticamente a los candidatos que ya tengan fecha de ingreso en empleados aprobados.
-  // Esto asegura que "simplemente suceda" para el histórico sin intervención manual.
-  await prisma.user.updateMany({
-    where: {
-      role: "candidate",
-      isActive: true,
-      fechaIngreso: { not: null }
-    },
-    data: {
-      role: "employee",
-      isApproved: true
-    }
-  });
-
   let planteles = await prisma.plantel.findMany({
     orderBy: { name: "asc" },
     select: { id: true, name: true, label: true, direccion: true, administracion: true, coordinacionGeneral: true }
@@ -73,15 +58,12 @@ export default async function AdminInicioPage({ searchParams }) {
       ...(session.role === "admin" ? { plantelId: { in: scopedPlantelIds } } : {})
     },
     select: {
-      id: true, name: true, email: true, picture: true, role: true, isApproved: true, 
-      plantelId: true, isActive: true, evaId: true, pathId: true,
-      curp: true, puesto: true, fechaIngreso: true, fechaBajaSustituido: true,
-      createdAt: true, updatedAt: true
+      id: true, name: true, email: true, picture: true, role: true, isApproved: true, plantelId: true, isActive: true,
+      evaId: true, pathId: true,
     },
     orderBy: { name: "asc" }
   });
   const userIds = usersRaw.map(u => u.id);
-  
   if (session.role === "admin") {
     usersRaw = usersRaw.filter(u => u.plantelId && scopedPlantelIds.includes(u.plantelId));
   }
@@ -107,22 +89,19 @@ export default async function AdminInicioPage({ searchParams }) {
     if (d.type === "proyectivos" && d.status === "ACCEPTED") projByUser[d.userId] = true;
   }
 
-  const activeEmployees = usersRaw.filter(u => u.role === "employee" && u.isActive);
-  const activeCandidates = usersRaw.filter(u => u.role === "candidate" && u.isActive);
-  
-  let completedActiveEmployees = 0;
-  activeEmployees.forEach(u => {
+  const totalUsers = usersRaw.length;
+  let userDocsCompleted = 0;
+  let expedientesValidados = 0;
+  usersRaw.forEach(u => {
     const checklist = byUserChecklist[u.id] || [];
     const digitalComplete = isUserExpedienteDigitalComplete(checklist);
-    const isProy = !!projByUser[u.id];
-    if (digitalComplete && isProy) {
-      completedActiveEmployees++;
-    }
+    if (digitalComplete) userDocsCompleted++;
+    if (digitalComplete && !!projByUser[u.id]) expedientesValidados++;
   });
-
-  const incompleteActiveEmployees = activeEmployees.length - completedActiveEmployees;
-  const totalActiveEmployees = activeEmployees.length;
-  const totalActiveCandidates = activeCandidates.length;
+  const percentDigitalExpedientes = totalUsers === 0 ? 0 : Math.round((userDocsCompleted / totalUsers) * 100);
+  const percentFinalExpedientes = totalUsers === 0 ? 0 : Math.round((expedientesValidados / totalUsers) * 100);
+  const totalPlanteles = plantelesScoped.length;
+  const totalDocuments = await prisma.document.count();
 
   let admins = [];
   if (session.role === "superadmin") {
@@ -172,36 +151,31 @@ export default async function AdminInicioPage({ searchParams }) {
 
   return (
     <AdminInicioClient session={session} showSidebar={session.role === "superadmin"}>
-      <div className="flex-1 w-full bg-[#f8fafc] relative pb-20">
-        
-        {/* Top Header con fondo oscuro elegante para crear contraste */}
-        <div className="sticky top-0 z-40 bg-[#0f172a] text-white border-b border-slate-800 shadow-xl px-6 sm:px-10 py-6">
-          <div className="max-w-screen-2xl mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
+      {/* Fallback support for existing AdminNav */}
+      <AdminNav session={session} />
+      
+      <div className="flex-1 w-full bg-slate-50 relative h-screen overflow-y-auto overflow-x-hidden">
+        {/* Sticky Top Summary */}
+        <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-6 sm:px-10 py-5">
+          <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-1">
-                Panel de Control
-              </h1>
-              <p className="text-sm text-indigo-200 font-medium opacity-90">Resumen y auditoría de personal</p>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard General</h1>
+              <p className="text-sm text-slate-500 font-medium">Resumen y auditoría de expedientes laborales</p>
             </div>
             <AdminDashboardStats
               summary={{
-                totalActiveEmployees,
-                completedActiveEmployees,
-                incompleteActiveEmployees,
-                totalActiveCandidates
+                userDocsCompleted,
+                totalUsers,
+                totalPlanteles,
+                percentDigitalExpedientes,
+                percentFinalExpedientes,
+                totalDocuments,
               }}
             />
           </div>
         </div>
         
-        <div className="max-w-screen-2xl mx-auto w-full px-6 sm:px-10 py-8 flex flex-col gap-12">
-          
-          {session.role === "superadmin" && (
-            <section id="hr-insights">
-              <HRInsightsDashboard users={users} planteles={filteredPlanteles} />
-            </section>
-          )}
-
+        <div className="max-w-screen-2xl mx-auto w-full px-6 sm:px-10 py-8 flex flex-col gap-10">
           <section id="user-management">
             <UserManagementPanel
               users={users}
@@ -217,10 +191,10 @@ export default async function AdminInicioPage({ searchParams }) {
           </section>
           
           {session.role === "superadmin" && (
-            <section id="settings" className="border-t-2 border-slate-200/60 pt-10">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración de Plataforma</h2>
-                <p className="text-base text-slate-500 mt-1">Administra catálogos, firmas de autoridades y permisos por plantel.</p>
+            <section id="settings" className="border-t border-slate-200 pt-10">
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-slate-900">Configuración de Plataforma</h2>
+                <p className="text-sm text-slate-500">Administra catálogos, firmas de autoridades y permisos por plantel.</p>
               </div>
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                 <div className="flex flex-col gap-8 w-full">
