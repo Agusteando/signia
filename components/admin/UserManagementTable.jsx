@@ -39,20 +39,20 @@ export default function UserManagementTable({
   return (
     <table className="w-full text-left border-collapse">
       <thead>
-        <tr className="border-b border-[#EEF2F7] text-slate-400 text-xs uppercase tracking-widest bg-transparent">
-          <th className="py-4 font-bold w-12 text-center pl-2">
-            <input type="checkbox" className="accent-[#6A3DF0] w-4 h-4 rounded cursor-pointer border-slate-300" checked={allSelected} onChange={e => onSelectAll(e.target.checked)} />
+        <tr className="border-b-2 border-[#EEF2F7] text-slate-400 text-xs font-extrabold uppercase tracking-widest bg-transparent">
+          <th className="py-5 w-14 text-center pl-2">
+            <input type="checkbox" className="accent-[#6A3DF0] w-5 h-5 rounded cursor-pointer border-slate-300" checked={allSelected} onChange={e => onSelectAll(e.target.checked)} />
           </th>
-          <th className="px-4 py-4 font-bold">Colaborador</th>
-          <th className="px-4 py-4 font-bold">Plantel</th>
-          <th className="px-4 py-4 font-bold">Estatus</th>
-          <th className="px-4 py-4 font-bold">Progreso</th>
-          <th className="px-4 py-4 font-bold text-right pr-6">Acciones</th>
+          <th className="px-6 py-5">Colaborador / Identidad</th>
+          <th className="px-6 py-5">Plantel Asignado</th>
+          <th className="px-6 py-5">Estado</th>
+          <th className="px-6 py-5 min-w-[200px]">Completitud</th>
+          <th className="px-6 py-5 text-right pr-6">Acciones</th>
         </tr>
       </thead>
       <tbody>
         {users.length === 0 && (
-          <tr><td colSpan={6} className="text-center text-slate-400 py-12 text-sm font-medium">No se encontraron colaboradores que coincidan con la búsqueda.</td></tr>
+          <tr><td colSpan={6} className="text-center text-slate-500 py-16 text-base font-semibold bg-[#F6F8FB] rounded-xl mt-4 border border-[#EEF2F7]">No se encontraron colaboradores que coincidan con la búsqueda actual.</td></tr>
         )}
         {users.map(u => (
           <UserRow

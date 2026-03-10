@@ -131,14 +131,14 @@ export default function UserManagementPanel({
   }
 
   return (
-    <div className="w-full flex flex-col bg-white border border-[#EEF2F7] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] rounded-2xl relative overflow-hidden">
+    <div className="w-full flex flex-col bg-white border border-[#EEF2F7] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] rounded-3xl relative overflow-hidden">
       {/* Top Header & Tabs */}
-      <div className="px-6 pt-6 pb-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#EEF2F7]">
-         <div className="flex space-x-2 w-full md:w-auto overflow-x-auto no-scrollbar bg-[#F6F8FB] p-1.5 rounded-xl border border-[#EEF2F7]">
+      <div className="px-8 pt-8 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-[#EEF2F7] bg-white">
+         <div className="flex space-x-3 w-full md:w-auto overflow-x-auto no-scrollbar bg-[#F6F8FB] p-2 rounded-2xl border border-[#EEF2F7]">
            {TABS.map(tab => (
              <button
                key={tab.id}
-               className={`px-4 py-2 text-sm font-bold whitespace-nowrap transition-all duration-200 rounded-lg ${
+               className={`px-5 py-2.5 text-sm font-bold whitespace-nowrap transition-all duration-200 rounded-xl ${
                  statusFilter === tab.id 
                    ? 'bg-white text-[#6A3DF0] shadow-sm ring-1 ring-slate-900/5 transform scale-100' 
                    : 'text-slate-500 hover:text-[#1F2937] hover:bg-slate-200/50'
@@ -150,64 +150,71 @@ export default function UserManagementPanel({
            ))}
          </div>
          {["superadmin", "admin"].includes(adminRole) && (
-           <div className="pb-1 md:pb-0">
+           <div className="pb-2 md:pb-0">
              <button
                type="button"
                onClick={handleExcelExport}
                disabled={exporting}
-               className="flex items-center gap-2 bg-[#00A6A6] text-white hover:bg-[#0FB5C9] font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-[#00A6A6]/20 disabled:opacity-70"
+               className="flex items-center gap-3 bg-[#00A6A6] text-white hover:bg-[#0FB5C9] font-extrabold px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-[#00A6A6]/20 disabled:opacity-70 text-sm hover:-translate-y-0.5"
              >
-               <ArrowDownTrayIcon className="w-5 h-5" />
-               {exporting ? "Generando..." : "Exportar Excel"}
+               <ArrowDownTrayIcon className="w-5 h-5 stroke-2" />
+               {exporting ? "Generando Reporte..." : "Exportar Datos (Excel)"}
              </button>
            </div>
          )}
       </div>
 
-      {/* Filter Bar */}
-      <div className="px-6 py-5 flex flex-wrap items-center gap-4 bg-white border-b border-[#EEF2F7]">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#00A6A6]" />
+      {/* Spacious Grid Filter Bar */}
+      <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 bg-white border-b border-[#EEF2F7]">
+        {/* Search */}
+        <div className="relative w-full">
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#00A6A6]" />
           <input 
-            className="w-full pl-11 pr-4 py-2.5 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6] transition-all outline-none text-[#1F2937] placeholder:text-slate-400 font-medium"
+            className="w-full pl-12 pr-4 py-3.5 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6] transition-all outline-none text-[#1F2937] placeholder:text-slate-400"
             placeholder="Buscar por nombre o correo..."
             value={filter}
             onChange={e => setFilter(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl px-3 hover:bg-white hover:border-[#00A6A6]/50 transition-colors cursor-pointer">
-          <FunnelIcon className="w-4 h-4 text-[#6A3DF0] ml-1" />
-          <select className="py-2.5 px-2 text-sm text-[#1F2937] outline-none bg-transparent appearance-none min-w-[140px] font-bold cursor-pointer" value={plantelFilter} onChange={e => setPlantelFilter(e.target.value)}>
-            <option value="">Plantel (Todos)</option>
+        {/* Plantel */}
+        <div className="relative w-full">
+          <FunnelIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6A3DF0]" />
+          <select className="w-full pl-12 pr-10 py-3.5 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl text-sm font-bold text-[#1F2937] outline-none hover:bg-white focus:bg-white focus:border-[#6A3DF0]/50 transition-colors cursor-pointer appearance-none" value={plantelFilter} onChange={e => setPlantelFilter(e.target.value)}>
+            <option value="">Todos los Planteles</option>
             {planteles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
         </div>
-        <div className="flex items-center gap-2 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl px-3 hover:bg-white hover:border-[#00A6A6]/50 transition-colors cursor-pointer">
-          <select className="py-2.5 px-2 text-sm text-[#1F2937] outline-none bg-transparent appearance-none min-w-[120px] font-bold cursor-pointer" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-            <option value="all">Rol (Todos)</option>
-            <option value="candidate">Candidatos</option>
-            <option value="employee">Empleados</option>
+        {/* Role */}
+        <div className="relative w-full">
+          <select className="w-full pl-5 pr-10 py-3.5 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl text-sm font-bold text-[#1F2937] outline-none hover:bg-white focus:bg-white focus:border-[#6A3DF0]/50 transition-colors cursor-pointer appearance-none" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+            <option value="all">Cualquier Rol</option>
+            <option value="candidate">Solo Candidatos</option>
+            <option value="employee">Solo Empleados</option>
           </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
         </div>
-        <div className="flex items-center gap-2 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl px-3 hover:bg-white hover:border-[#00A6A6]/50 transition-colors cursor-pointer">
-          <select className="py-2.5 px-2 text-sm text-[#1F2937] outline-none bg-transparent appearance-none font-bold cursor-pointer" value={activeFilter} onChange={e => setActiveFilter(e.target.value)}>
-            <option value="todos">Actividad (Todas)</option>
-            <option value="activos">Sólo activos</option>
-            <option value="bajas">Sólo bajas</option>
+        {/* Active Status */}
+        <div className="relative w-full">
+          <select className="w-full pl-5 pr-10 py-3.5 bg-[#F6F8FB] border border-[#EEF2F7] rounded-xl text-sm font-bold text-[#1F2937] outline-none hover:bg-white focus:bg-white focus:border-[#6A3DF0]/50 transition-colors cursor-pointer appearance-none" value={activeFilter} onChange={e => setActiveFilter(e.target.value)}>
+            <option value="todos">Activos e Inactivos</option>
+            <option value="activos">Personal Activo</option>
+            <option value="bajas">Personal de Baja</option>
           </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
         </div>
       </div>
 
       {feedback.message && (
-        <div className={`mx-6 mt-5 mb-1 px-5 py-3 rounded-xl font-bold text-sm border flex items-center gap-3 animate-fade-in shadow-sm ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : feedback.type === "error" ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200"}`}>
-          {feedback.type === "success" && <CheckCircleIcon className="w-6 h-6 text-emerald-600" />}
-          {feedback.type === "error" && <XCircleIcon className="w-6 h-6 text-rose-600" />}
+        <div className={`mx-8 mt-6 mb-2 px-6 py-4 rounded-xl font-bold text-sm border flex items-center gap-3 animate-fade-in shadow-sm ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800 border-emerald-200" : feedback.type === "error" ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-slate-50 text-slate-800 border-slate-200"}`}>
+          {feedback.type === "success" && <CheckCircleIcon className="w-6 h-6 text-emerald-600 stroke-2" />}
+          {feedback.type === "error" && <XCircleIcon className="w-6 h-6 text-rose-600 stroke-2" />}
           {feedback.message}
         </div>
       )}
 
-      {/* Main Table */}
-      <div className="px-6 py-2 overflow-x-auto min-h-[300px]">
+      {/* Main Table Area */}
+      <div className="px-8 py-2 overflow-x-auto min-h-[400px]">
         <UserManagementTable
           users={paginatedUsers}
           planteles={planteles}
@@ -227,17 +234,17 @@ export default function UserManagementPanel({
         />
       </div>
       
-      {/* Bottom Pagination */}
-      <div className="px-6 py-5 border-t border-[#EEF2F7] bg-white flex flex-wrap items-center justify-between text-sm text-slate-500 gap-4">
-        <div className="flex items-center gap-3 font-medium">
+      {/* Footer Pagination */}
+      <div className="px-8 py-6 border-t border-[#EEF2F7] bg-white flex flex-wrap items-center justify-between text-sm text-slate-500 gap-6">
+        <div className="flex items-center gap-4 font-medium">
           <span>Mostrando página <strong className="text-[#1F2937] text-base">{page}</strong> de {totalPages}</span>
-          <select className="border border-[#EEF2F7] rounded-lg bg-[#F6F8FB] px-3 py-1.5 outline-none focus:ring-2 focus:ring-[#00A6A6]/30 font-bold text-[#1F2937] transition-shadow cursor-pointer" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
-            {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s} filas</option>)}
+          <select className="border border-[#EEF2F7] rounded-xl bg-[#F6F8FB] px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#00A6A6]/30 font-bold text-[#1F2937] transition-shadow cursor-pointer" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
+            {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s} filas por página</option>)}
           </select>
         </div>
-        <div className="flex gap-2">
-          <button className="p-2 rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] hover:bg-white hover:text-[#6A3DF0] hover:border-[#6A3DF0]/30 disabled:opacity-50 transition-all shadow-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><ChevronLeftIcon className="w-5 h-5" /></button>
-          <button className="p-2 rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] hover:bg-white hover:text-[#6A3DF0] hover:border-[#6A3DF0]/30 disabled:opacity-50 transition-all shadow-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}><ChevronRightIcon className="w-5 h-5" /></button>
+        <div className="flex gap-3">
+          <button className="p-3 rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] hover:bg-white hover:text-[#6A3DF0] hover:border-[#6A3DF0]/30 disabled:opacity-50 transition-all shadow-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><ChevronLeftIcon className="w-5 h-5 stroke-2" /></button>
+          <button className="p-3 rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] hover:bg-white hover:text-[#6A3DF0] hover:border-[#6A3DF0]/30 disabled:opacity-50 transition-all shadow-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}><ChevronRightIcon className="w-5 h-5 stroke-2" /></button>
         </div>
       </div>
 

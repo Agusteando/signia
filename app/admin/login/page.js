@@ -68,7 +68,7 @@ export default function AdminLogin() {
           text: "sign_in_with",
           size: "large",
           logo_alignment: "left",
-          width: 260,
+          width: 280,
           locale: "es",
         }
       );
@@ -81,48 +81,50 @@ export default function AdminLogin() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
-      <div className="w-full max-w-md mx-auto relative bg-white dark:bg-slate-900 shadow-xl rounded-2xl px-6 py-10 border border-slate-200 dark:border-slate-800 flex flex-col items-center">
-        {/* Brand */}
-        <div className="flex flex-col items-center gap-2 mb-8 select-none">
-          <div className="relative w-16 h-16">
-            <Image
-              src="/IMAGOTIPO-IECS-IEDIS.png"
-              alt="IECS-IEDIS"
-              fill
-              className="object-contain bg-white rounded-xl shadow-sm border border-slate-100"
-              priority
-            />
-          </div>
-          <span className="font-fredoka font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight">IECS-IEDIS</span>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F6F8FB] relative overflow-hidden p-6">
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#6A3DF0] rounded-full mix-blend-multiply filter blur-[120px] opacity-10 animate-pulse pointer-events-none"></div>
+      
+      <div className="w-full max-w-lg mx-auto relative bg-white/80 backdrop-blur-2xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.12)] rounded-[2rem] px-10 py-14 border border-white flex flex-col items-center z-10 fade-in">
+        
+        <div className="flex flex-col items-center gap-4 mb-12 select-none">
+          <Image
+            src="/signia.png"
+            alt="Signia"
+            width={180}
+            height={60}
+            className="object-contain drop-shadow-sm"
+            priority
+          />
         </div>
         
-        <div className="flex flex-col items-center text-center mb-8">
-          <span className="inline-flex items-center gap-2 font-bold text-xl text-slate-900 dark:text-white tracking-tight select-none">
-            <ShieldCheckIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-            Acceso Administrativo
+        <div className="flex flex-col items-center text-center mb-10 w-full">
+          <span className="inline-flex items-center justify-center gap-3 font-extrabold text-2xl text-[#1F2937] tracking-tight select-none">
+            <div className="p-2.5 bg-[#F6F8FB] rounded-xl text-[#6A3DF0]">
+              <ShieldCheckIcon className="w-8 h-8" />
+            </div>
+            Workspace Administrativo
           </span>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">
-            Panel de control exclusivo para administradores autorizados.
+          <p className="text-slate-500 text-base mt-4 font-medium max-w-sm leading-relaxed">
+            Panel de control avanzado y auditoría. Acceso exclusivo para directivos autorizados.
           </p>
         </div>
         
-        <div className="w-full flex flex-col items-center justify-center min-h-[50px] mb-4 relative">
+        <div className="w-full flex flex-col items-center justify-center min-h-[60px] mb-6 relative">
           <div id="g_id_signin" className={`w-full flex flex-col items-center ${isAuthenticating ? 'hidden' : ''}`}></div>
           {isAuthenticating && (
-            <div className="flex flex-col items-center gap-3 animate-pulse">
-              <ArrowPathIcon className="w-6 h-6 text-indigo-600 animate-spin" />
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Autenticando de forma segura...</span>
+            <div className="flex flex-col items-center gap-4 bg-[#F6F8FB] w-full py-6 rounded-2xl border border-[#EEF2F7]">
+              <ArrowPathIcon className="w-8 h-8 text-[#6A3DF0] animate-spin" />
+              <span className="text-sm font-bold text-[#6A3DF0] tracking-wide">Autenticando conexión segura...</span>
             </div>
           )}
         </div>
         
-        <div className="w-full text-center text-xs mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-          <ArrowRightEndOnRectangleIcon className="w-4 h-4 inline mr-1 mb-0.5 text-indigo-500 dark:text-indigo-400" />
-          Acceso mediante Google Workspace.
+        <div className="w-full text-center text-sm mt-6 pt-6 border-t border-[#EEF2F7] text-slate-400 font-medium flex items-center justify-center gap-2">
+          <ArrowRightEndOnRectangleIcon className="w-5 h-5 text-[#00A6A6]" />
+          Acceso protegido mediante Google Workspace.
         </div>
         
-        <OtherLoginPrompt forRole="admin" className="mt-4" />
+        <OtherLoginPrompt forRole="admin" className="mt-2" />
       </div>
     </div>
   );
