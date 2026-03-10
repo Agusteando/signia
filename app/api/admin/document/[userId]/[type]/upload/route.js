@@ -80,7 +80,7 @@ export async function POST(req, context) {
 
     let uploadRes;
     try {
-      uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+      uploadRes = await fetch("https://expediente.casitaapps.com/upload.ashx", {
         method: "POST",
         body: outFormData,
       });

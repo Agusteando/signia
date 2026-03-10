@@ -73,7 +73,7 @@ export async function POST(req, context) {
       outFormData.append("path", `documents/${doc.userId}`);
 
       try {
-        const uploadRes = await fetch("https://expediente.casitaapps.com/upload", {
+        const uploadRes = await fetch("https://expediente.casitaapps.com/upload.ashx", {
           method: "POST",
           body: outFormData
         });
