@@ -4,10 +4,7 @@ import { PlusIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon, DocumentDuplicate
 
 function normalizeListInput(text) {
   if (!text) return [];
-  return text
-    .split(/\r?\n|,/g)
-    .map(s => s.trim())
-    .filter(Boolean);
+  return text.split(/\r?\n|,/g).map(s => s.trim()).filter(Boolean);
 }
 
 export default function PuestoAdminPanel() {
@@ -25,16 +22,13 @@ export default function PuestoAdminPanel() {
   const [importing, setImporting] = useState(false);
 
   async function fetchPuestos() {
-    setLoading(true);
-    setMsg(""); setErr("");
+    setLoading(true); setMsg(""); setErr("");
     try {
       const r = await fetch("/api/admin/puestos/list");
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "No se pudo cargar puestos");
+      if (!r.ok) throw new Error(d.error || "No se pudo cargar");
       setPuestos(d.puestos || []);
-    } catch (e) {
-      setErr(e.message || "Error");
-    }
+    } catch (e) { setErr(e.message || "Error"); }
     setLoading(false);
   }
 
@@ -51,358 +45,147 @@ export default function PuestoAdminPanel() {
     if (!newName.trim()) return;
     setAdding(true); setErr(""); setMsg("");
     try {
-      const r = await fetch("/api/admin/puestos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim() })
-      });
+      const r = await fetch("/api/admin/puestos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newName.trim() }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || "No se pudo crear");
-      setNewName("");
-      setMsg("Puesto agregado/activado");
+      setNewName(""); setMsg("Puesto agregado/activado");
       await fetchPuestos();
-    } catch (e) {
-      setErr(e.message || "Error");
-    }
+    } catch (e) { setErr(e.message || "Error"); }
     setAdding(false);
   }
 
   async function toggleActive(p, next) {
-    setSavingId(p.id);
-    setErr(""); setMsg("");
+    setSavingId(p.id); setErr(""); setMsg("");
     try {
-      const r = await fetch(`/api/admin/puestos/${p.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: next })
-      });
+      const r = await fetch(`/api/admin/puestos/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: next }) });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "No se pudo cambiar estatus");
+      if (!r.ok) throw new Error(d.error || "Error");
       setMsg(next ? "Activado" : "Desactivado");
       await fetchPuestos();
-    } catch (e) {
-      setErr(e.message || "Error");
-    }
+    } catch (e) { setErr(e.message || "Error"); }
     setSavingId(null);
-  }
-
-  async function rename(p, newLabel) {
-    const name = (newLabel || "").trim();
-    if (!name || name === p.name) return;
-    setSavingId(p.id);
-    setErr(""); setMsg("");
-    try {
-      const r = await fetch(`/api/admin/puestos/${p.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "No se pudo renombrar");
-      setMsg("Nombre actualizado");
-      await fetchPuestos();
-    } catch (e) {
-      setErr(e.message || "Error");
-    }
-    setSavingId(null);
-  }
-
-  async function remove(p) {
-    if (!confirm(`¿Eliminar el puesto "${p.name}"?`)) return;
-    setSavingId(p.id);
-    setErr(""); setMsg("");
-    try {
-      const r = await fetch(`/api/admin/puestos/${p.id}`, { method: "DELETE" });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "No se pudo eliminar");
-      setMsg(d.deactivated ? "Puesto desactivado" : "Puesto eliminado");
-      await fetchPuestos();
-    } catch (e) {
-      setErr(e.message || "Error");
-    }
-    setSavingId(null);
-  }
-
-  async function doImport() {
-    const items = normalizeListInput(importText);
-    if (items.length === 0) {
-      setErr("Agrega al menos un puesto");
-      return;
-    }
-    setImporting(true);
-    setErr(""); setMsg("");
-    try {
-      const r = await fetch("/api/admin/puestos/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, mode: importMode })
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "No se pudo importar");
-      setMsg(importMode === "replace" ? "Lista reemplazada" : "Lista actualizada");
-      setImportOpen(false);
-      setImportText("");
-      await fetchPuestos();
-    } catch (e) {
-      setErr(e.message || "Error");
-    }
-    setImporting(false);
-  }
-
-  function copyTemplate() {
-    const sample = [
-      "DIRECTOR ESCOLAR",
-      "COORDINADOR PEDAGÓGICO",
-      "DOCENTE",
-      "ADMINISTRACIÓN"
-    ].join("\n");
-    setImportText(sample);
+    setTimeout(() => setMsg(""), 2000);
   }
 
   return (
-    <div className="w-full card-elevated p-5">
-      <header className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <h2 className="font-semibold text-slate-900 text-base">Catálogo de Puestos</h2>
-        <div className="flex items-center gap-2">
+    <div className="w-full bg-white border border-[#EEF2F7] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] rounded-2xl p-7 fade-in">
+      <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h2 className="font-extrabold text-[#1F2937] text-lg tracking-tight">Catálogo de Puestos</h2>
+        <div className="flex items-center gap-3">
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar..."
-            className="border border-slate-200 bg-slate-50 rounded-lg px-3 py-1.5 text-sm w-[160px] focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-colors"
+            placeholder="Buscar puesto..."
+            className="border border-[#EEF2F7] bg-[#F6F8FB] rounded-xl px-4 py-2 text-sm w-[180px] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6] transition-all font-medium text-[#1F2937]"
           />
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm rounded-lg shadow-sm font-medium transition"
-            onClick={() => setImportOpen(true)}
-            type="button"
-          >
-            <DocumentDuplicateIcon className="w-4 h-4 text-slate-400" />
-            Importar
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[#EEF2F7] hover:bg-[#F6F8FB] text-slate-700 hover:text-[#6A3DF0] text-sm rounded-xl font-bold transition-all shadow-sm focus:ring-4 ring-[#6A3DF0]/20 outline-none" onClick={() => setImportOpen(true)} type="button">
+            <DocumentDuplicateIcon className="w-4 h-4 stroke-2" /> Importar
           </button>
-          <button
-            className="p-1.5 border border-slate-200 rounded-lg text-sm hover:bg-slate-50 bg-white shadow-sm transition"
-            onClick={fetchPuestos}
-            type="button"
-            title="Recargar"
-          >
-            <ArrowPathIcon className="w-4 h-4 text-slate-500" />
+          <button className="p-2 border border-[#EEF2F7] rounded-xl text-sm hover:bg-[#F6F8FB] bg-white text-slate-500 hover:text-[#00A6A6] shadow-sm transition-all focus:ring-4 ring-[#00A6A6]/20 outline-none" onClick={fetchPuestos} type="button" title="Recargar">
+            <ArrowPathIcon className="w-5 h-5 stroke-2" />
           </button>
         </div>
       </header>
 
       {(msg || err) && (
-        <div className={`mb-3 text-center text-xs font-medium px-3 py-2 rounded-lg border ${err ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+        <div className={`mb-4 text-center text-xs font-bold px-4 py-3 rounded-xl border flex items-center justify-center gap-2 shadow-sm ${err ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-emerald-50 text-[#00A6A6] border-[#00A6A6]/20"}`}>
+          {err ? <XMarkIcon className="w-4 h-4 stroke-2"/> : <CheckCircleIcon className="w-4 h-4 stroke-2"/>}
           {err || msg}
         </div>
       )}
 
-      <div className="w-full overflow-x-auto border border-slate-200/80 rounded-xl">
+      <div className="w-full overflow-x-auto border border-[#EEF2F7] rounded-2xl shadow-inner bg-[#F6F8FB]/50">
         {loading ? (
-          <div className="text-center p-6 text-slate-500 font-medium text-sm">Cargando…</div>
+          <div className="text-center p-8 text-[#00A6A6] font-bold text-sm animate-pulse">Sincronizando catálogo...</div>
         ) : (
-          <table className="min-w-full table-auto text-xs sm:text-sm">
+          <table className="min-w-full table-auto text-xs sm:text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200/60 uppercase text-[10px] tracking-wider text-slate-500">
-                <th className="px-4 py-3 text-left font-medium">Nombre</th>
-                <th className="px-4 py-3 text-left font-medium">Estatus</th>
-                <th className="px-4 py-3 text-left font-medium">Acciones</th>
+              <tr className="bg-[#F6F8FB] border-b border-[#EEF2F7] uppercase text-[10px] tracking-widest text-slate-400">
+                <th className="px-5 py-4 text-left font-bold">Nombre del Puesto</th>
+                <th className="px-5 py-4 text-left font-bold">Estatus</th>
+                <th className="px-5 py-4 text-left font-bold">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="bg-slate-50/50 border-b border-slate-200/60">
-                <td className="px-4 py-2" colSpan={3}>
-                  <form onSubmit={handleAdd} className="flex gap-2 items-center w-full max-w-sm">
-                    <input
-                      type="text"
-                      placeholder="Agregar nuevo puesto…"
-                      value={newName}
-                      onChange={e => setNewName(e.target.value)}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 w-full bg-white focus:ring-2 focus:ring-slate-900/5 transition outline-none shadow-sm"
-                      maxLength={80}
-                      disabled={adding}
-                    />
-                    <button
-                      type="submit"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium disabled:opacity-50 transition shadow-sm"
-                      disabled={adding || !newName.trim()}
-                    >
-                      <PlusIcon className="w-4 h-4" />
-                      Agregar
+              <tr className="bg-[#F6F8FB] border-b border-[#EEF2F7]">
+                <td className="px-5 py-3" colSpan={3}>
+                  <form onSubmit={handleAdd} className="flex gap-3 items-center w-full max-w-md">
+                    <input type="text" placeholder="Escribir nuevo puesto..." value={newName} onChange={e => setNewName(e.target.value)} className="rounded-xl border border-[#EEF2F7] px-4 py-2.5 w-full bg-white focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6] transition outline-none font-bold text-[#1F2937] shadow-sm" maxLength={80} disabled={adding} />
+                    <button type="submit" className="flex items-center gap-2 px-5 py-2.5 bg-[#00A6A6] hover:bg-[#0FB5C9] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-all shadow-md shadow-[#00A6A6]/20 hover:-translate-y-0.5" disabled={adding || !newName.trim()}>
+                      <PlusIcon className="w-4 h-4 stroke-2" /> Agregar
                     </button>
                   </form>
                 </td>
               </tr>
               {filtered.map(p => (
-                <tr key={p.id} className="border-b border-slate-100/80 bg-white hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3">
-                    <InlineEditable
-                      value={p.name}
-                      onSave={(val) => rename(p, val)}
-                      disabled={savingId === p.id}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ring-1 ring-inset ${p.active ? "bg-emerald-50 text-emerald-700 ring-emerald-600/10" : "bg-slate-50 text-slate-600 ring-slate-500/10"}`}>
-                      {p.active ? <CheckCircleIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
-                      {p.active ? "Activo" : "Inactivo"}
+                <tr key={p.id} className="border-b border-[#EEF2F7] bg-transparent hover:bg-white transition-colors">
+                  <td className="px-5 py-4 font-extrabold text-[#1F2937]">{p.name}</td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-extrabold ring-1 ring-inset shadow-sm ${p.active ? "bg-emerald-50 text-[#00A6A6] ring-[#00A6A6]/20" : "bg-slate-100 text-slate-500 ring-slate-300/50"}`}>
+                      {p.active ? <CheckCircleIcon className="w-3.5 h-3.5 stroke-2" /> : <XMarkIcon className="w-3.5 h-3.5 stroke-2" />}
+                      {p.active ? "ACTIVO" : "INACTIVO"}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 items-center">
-                      <button
-                        className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition shadow-sm border ${p.active ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"}`}
-                        onClick={() => toggleActive(p, !p.active)}
-                        disabled={savingId === p.id}
-                      >
-                        {p.active ? "Desactivar" : "Activar"}
-                      </button>
-                      <button
-                        className="px-3 py-1.5 rounded-md text-[11px] font-medium bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 transition shadow-sm flex items-center gap-1"
-                        onClick={() => remove(p)}
-                        disabled={savingId === p.id}
-                      >
-                        <TrashIcon className="w-3.5 h-3.5" />
-                        Eliminar
-                      </button>
-                    </div>
+                  <td className="px-5 py-4">
+                    <button className={`px-4 py-2 rounded-xl text-[11px] font-bold transition-all shadow-sm border ${p.active ? "bg-white border-[#EEF2F7] text-slate-600 hover:bg-[#F6F8FB] hover:text-[#1F2937]" : "bg-[#00A6A6] text-white border-[#00A6A6] hover:bg-[#0FB5C9] shadow-[#00A6A6]/20 hover:-translate-y-0.5"}`} onClick={() => toggleActive(p, !p.active)} disabled={savingId === p.id}>
+                      {p.active ? "Desactivar Puesto" : "Activar Puesto"}
+                    </button>
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr>
-                  <td className="px-4 py-8 text-center text-slate-500 bg-white text-sm" colSpan={3}>No hay puestos que coincidan con la búsqueda.</td>
-                </tr>
+                <tr><td className="px-5 py-10 text-center text-slate-500 font-bold bg-white text-sm" colSpan={3}>No se encontró el puesto.</td></tr>
               )}
             </tbody>
           </table>
         )}
       </div>
 
+      {/* Import Modal */}
       {importOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-slate-200 shadow-xl">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-lg text-slate-900">Importar Puestos</h3>
-              <button
-                className="text-slate-400 hover:text-slate-900 rounded-full p-1.5 hover:bg-slate-100 transition"
-                onClick={() => setImportOpen(false)}
-                type="button"
-              >
-                <XMarkIcon className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-[#1F2937]/40 backdrop-blur-sm flex items-center justify-center p-4 fade-in">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg border border-[#EEF2F7] shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-xl text-[#1F2937]">Importación Masiva</h3>
+              <button className="text-slate-400 hover:text-[#6A3DF0] rounded-full p-2 bg-[#F6F8FB] hover:bg-[#EEF2F7] transition" onClick={() => setImportOpen(false)} type="button">
+                <XMarkIcon className="w-5 h-5 stroke-2" />
               </button>
             </div>
-            <p className="text-sm text-slate-500 mb-4">
-              Pega una lista de puestos, separados por líneas o comas.
-            </p>
-            <div className="flex flex-col gap-4">
+            <p className="text-sm font-medium text-slate-500 mb-6">Pega una lista de puestos (uno por línea o separados por comas).</p>
+            <div className="flex flex-col gap-5">
               <textarea
-                className="w-full min-h-[160px] rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-colors"
+                className="w-full min-h-[180px] rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] p-4 text-sm font-medium text-[#1F2937] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6A3DF0]/30 focus:border-[#6A3DF0] transition-colors"
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
-                placeholder="Ejemplo:
-DIRECTOR ESCOLAR
-COORDINADOR PEDAGÓGICO"
+                placeholder="Ejemplo:&#10;DIRECTOR GENERAL&#10;DOCENTE FRENTE A GRUPO"
               />
-              <div className="flex flex-col gap-3 border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-slate-700">Modo:</label>
-                  <select
-                    value={importMode}
-                    onChange={e => setImportMode(e.target.value)}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/5"
-                  >
-                    <option value="merge">Actualizar e integrar</option>
-                    <option value="replace">Reemplazar todo</option>
-                  </select>
-                </div>
-                <div className="flex justify-between items-center">
-                  <button
-                    className="text-xs rounded-md px-3 py-1.5 border border-slate-200 hover:bg-slate-50 font-medium text-slate-700 transition"
-                    onClick={copyTemplate}
-                    type="button"
-                  >
-                    Usar plantilla
-                  </button>
-                  <span className="text-xs text-slate-500">
-                    Puestos: <b className="text-slate-900">{normalizeListInput(importText).length}</b>
-                  </span>
-                </div>
+              <div className="flex items-center gap-3">
+                <select value={importMode} onChange={e => setImportMode(e.target.value)} className="flex-1 rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] px-4 py-3 text-sm font-bold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#6A3DF0]/30 cursor-pointer">
+                  <option value="merge">Fusionar con catálogo actual</option>
+                  <option value="replace">Remplazar TODO el catálogo</option>
+                </select>
+                <span className="text-xs font-bold text-slate-400 bg-[#F6F8FB] px-3 py-3 rounded-xl border border-[#EEF2F7]">
+                  {normalizeListInput(importText).length} Puestos
+                </span>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-1">
-                <button
-                  className="text-sm font-medium rounded-lg px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 transition"
-                  onClick={() => setImportOpen(false)}
-                  type="button"
-                  disabled={importing}
-                >
-                  Cancelar
-                </button>
-                <button
-                  className={`text-sm font-medium rounded-lg px-5 py-2 text-white shadow-sm transition ${importMode === "replace" ? "bg-rose-600 hover:bg-rose-700" : "bg-slate-900 hover:bg-slate-800"}`}
-                  onClick={doImport}
-                  type="button"
-                  disabled={importing || normalizeListInput(importText).length === 0}
-                >
-                  {importing ? "Procesando…" : importMode === "replace" ? "Reemplazar" : "Actualizar"}
+              <div className="flex items-center justify-end gap-3 mt-2">
+                <button className="text-sm font-bold rounded-xl px-5 py-3 border border-[#EEF2F7] bg-[#F6F8FB] text-slate-600 hover:bg-slate-200 transition" onClick={() => setImportOpen(false)} type="button" disabled={importing}>Cancelar</button>
+                <button className={`text-sm font-bold rounded-xl px-6 py-3 text-white shadow-lg transition-all hover:-translate-y-0.5 ${importMode === "replace" ? "bg-rose-600 hover:bg-rose-700 shadow-rose-600/30" : "bg-gradient-to-r from-[#6A3DF0] to-[#7B4DFF] hover:shadow-[#6A3DF0]/30"}`} onClick={async () => {
+                  const items = normalizeListInput(importText);
+                  if(!items.length) return;
+                  setImporting(true);
+                  try {
+                    await fetch("/api/admin/puestos/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items, mode: importMode }) });
+                    setImportOpen(false); setImportText(""); fetchPuestos();
+                  } catch(e) {}
+                  setImporting(false);
+                }} disabled={importing || normalizeListInput(importText).length === 0}>
+                  {importing ? "Procesando..." : "Importar Catálogo"}
                 </button>
               </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-function InlineEditable({ value, onSave, disabled }) {
-  const [v, setV] = useState(value);
-  const [editing, setEditing] = useState(false);
-  useEffect(() => setV(value), [value]);
-
-  function submit() {
-    if (v.trim() && v.trim() !== value) onSave(v.trim());
-    setEditing(false);
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      {editing ? (
-        <>
-          <input
-            value={v}
-            onChange={e => setV(e.target.value)}
-            className="rounded-md border border-slate-200 px-2 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-slate-900/5 bg-white shadow-sm"
-            onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") { setV(value); setEditing(false); } }}
-            maxLength={80}
-            autoFocus
-            disabled={disabled}
-          />
-          <button
-            className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-900 text-white hover:bg-slate-800 transition shadow-sm"
-            onClick={submit}
-            disabled={disabled}
-          >
-            Guardar
-          </button>
-          <button
-            className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition"
-            onClick={() => { setV(value); setEditing(false); }}
-            disabled={disabled}
-          >
-            Cancelar
-          </button>
-        </>
-      ) : (
-        <>
-          <span className="font-medium text-slate-900">{value}</span>
-          <button
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-            onClick={() => setEditing(true)}
-            disabled={disabled}
-            title="Editar nombre"
-          >
-            <PencilSquareIcon className="w-4 h-4" />
-          </button>
-        </>
       )}
     </div>
   );

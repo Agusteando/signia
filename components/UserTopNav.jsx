@@ -1,4 +1,3 @@
-
 "use client";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -6,17 +5,12 @@ import LogoutButton from "@/components/LogoutButton";
 import { useState, useEffect, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-/**
- * SaaS-style, elegant, fully responsive top navigation for employees/candidates.
- * No extraneous titles, logo left, user identity center/right, always mobile first.
- */
 export default function UserTopNav() {
   const { data: session } = useSession();
   const user = session?.user;
   const [open, setOpen] = useState(false);
   const popRef = useRef(null);
 
-  // Close popover when clicking outside (for mobile menu)
   useEffect(() => {
     if (!open) return;
     function handler(e) {
@@ -35,7 +29,6 @@ export default function UserTopNav() {
 
   if (!user) return null;
 
-  // Use 2 names + 2surnames if present
   const nameParts = (user.name || "").trim().split(" ");
   const shortName =
     nameParts.length >= 3
@@ -45,125 +38,116 @@ export default function UserTopNav() {
 
   return (
     <>
-      {/* Top nav bar */}
       <nav className="
         fixed top-0 left-0 z-50 w-full
-        bg-gradient-to-br from-white via-cyan-50 to-fuchsia-50 dark:from-slate-950 dark:via-cyan-950 dark:to-fuchsia-900
-        border-b border-cyan-100 dark:border-slate-800
-        shadow-md
+        bg-white/80 backdrop-blur-2xl border-b border-[#EEF2F7]
+        shadow-[0_4px_24px_-8px_rgba(0,0,0,0.04)]
         flex items-center
-        h-[58px] xs:h-[64px] sm:h-[74px]
-        px-2 xs:px-3 sm:px-6
+        h-[64px] sm:h-[76px]
+        px-4 sm:px-8
         justify-between
       ">
-        {/* Logo */}
         <div className="flex items-center min-w-0">
           <Image
             src="/signia.png"
             alt="Signia"
-            width={140}
-            height={44}
+            width={120}
+            height={40}
             priority
-            className="w-[44px] xs:w-[56px] sm:w-[100px] md:w-[140px] h-auto object-contain bg-white rounded-lg shadow"
+            className="w-[80px] sm:w-[120px] h-auto object-contain drop-shadow-sm"
             draggable={false}
           />
         </div>
-        {/* MOBILE: short name center, avatar right */}
         <div className="flex-1 flex min-w-0 md:hidden justify-center">
           <span
-            className="font-bold text-cyan-900 dark:text-cyan-100 text-sm xs:text-base leading-tight
-                       truncate max-w-[120px] xs:max-w-[180px] sm:max-w-[260px] text-center"
+            className="font-extrabold text-[#1F2937] text-sm xs:text-base leading-tight
+                       truncate max-w-[140px] xs:max-w-[200px] text-center"
             title={user.name}
           >
             {shortName}
           </span>
         </div>
-        <div className="flex items-center gap-2 ml-auto">
-          {/* Avatar: always present, menu trigger on mobile, pure display desktop */}
+        <div className="flex items-center gap-3 ml-auto">
           <button
             type="button"
             aria-label="Cuenta"
             title="Cuenta"
             className="
               block md:hidden relative focus:outline-none
-              w-11 h-11 xs:w-12 xs:h-12 border border-cyan-200 dark:border-cyan-700 rounded-full p-0 shadow-sm
-              bg-cyan-100/60 dark:bg-slate-900/70
-              flex items-center justify-center focus:ring-2 focus:ring-cyan-400
-              hover:scale-105 transition"
+              w-10 h-10 xs:w-11 xs:h-11 rounded-full p-0 shadow-sm
+              bg-[#F6F8FB] border-2 border-white
+              flex items-center justify-center focus:ring-4 focus:ring-[#6A3DF0]/30
+              hover:scale-105 transition-transform"
             onClick={() => setOpen((s) => !s)}
           >
             <Image
               src={avatarSrc}
               alt={user.name}
               width={48} height={48}
-              className="rounded-full object-cover bg-white"
+              className="rounded-full object-cover bg-white w-full h-full"
               draggable={false}
             />
           </button>
-          {/* Desktop: full info + logout */}
-          <div className="hidden md:flex flex-row items-center gap-3">
+          <div className="hidden md:flex flex-row items-center gap-4">
             <div className="flex flex-col items-end justify-center min-w-0">
               <span className="
-                font-extrabold text-cyan-900 dark:text-cyan-100 leading-tight text-base
-                max-w-[320px] break-words
+                font-extrabold text-[#1F2937] leading-tight text-sm
+                max-w-[260px] truncate
               ">
                 {user.name}
               </span>
               <span className="
-                text-xs xs:text-sm font-semibold text-slate-400 dark:text-slate-400
-                leading-tight truncate max-w-[220px] md:max-w-[340px]"
+                text-[11px] font-bold text-[#00A6A6]
+                leading-tight truncate max-w-[220px]"
                 >
-                {user.email}
+                WORKSPACE OPERATIVO
               </span>
             </div>
             <Image
               src={avatarSrc}
               alt={user.name}
-              width={56} height={56}
-              className="rounded-full object-cover bg-white border-2 border-cyan-200 dark:border-cyan-800 shadow w-14 h-14"
+              width={44} height={44}
+              className="rounded-full object-cover bg-white border-2 border-[#F6F8FB] shadow-sm w-11 h-11"
               draggable={false}
             />
             <LogoutButton className="
-              ml-1 px-5 py-2 rounded-full font-bold text-base bg-gradient-to-r from-cyan-700 to-fuchsia-700
-              text-white shadow border-0 hover:from-fuchsia-700 hover:to-cyan-700
-              transition
+              ml-2 px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-[#6A3DF0] to-[#7B4DFF]
+              text-white shadow-md shadow-[#6A3DF0]/20 border-0 hover:shadow-lg hover:shadow-[#6A3DF0]/30 hover:-translate-y-0.5
+              transition-all duration-300
             " />
           </div>
         </div>
       </nav>
       
-      {/* Mobile account modal (elegant popover, slides from top) */}
       {open && (
-        <div className="fixed inset-0 z-[60] bg-black/30 flex items-start justify-end md:hidden">
-          {/* Blurred backdrop, modal menu */}
+        <div className="fixed inset-0 z-[60] bg-[#1F2937]/40 backdrop-blur-sm flex items-start justify-end md:hidden">
           <div className="
-            w-full max-w-xs ml-auto mt-[66px] xs:mt-[74px] mr-3 sm:mr-6
-            bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-cyan-100 dark:border-cyan-800
-            flex flex-col items-center px-6 py-8 gap-4 animate-[fade-in_0.18s_cubic-bezier(0.33,1.4,0.77,1)_both]
+            w-full max-w-xs ml-auto mt-[70px] xs:mt-[80px] mr-4
+            bg-white rounded-3xl shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15)] border border-[#EEF2F7]
+            flex flex-col items-center px-6 py-8 gap-4 fade-in
           " ref={popRef}>
             <button
               onClick={() => setOpen(false)}
               aria-label="Cerrar"
-              className="absolute top-2 right-3 bg-cyan-50 dark:bg-slate-800 rounded-full p-1.5 shadow"
+              className="absolute top-4 right-4 bg-[#F6F8FB] hover:bg-[#EEF2F7] rounded-full p-2 transition-colors text-slate-500 hover:text-[#1F2937]"
             >
-              <XMarkIcon className="w-5 h-5 text-cyan-400" />
+              <XMarkIcon className="w-5 h-5 stroke-2" />
             </button>
             <Image
               src={avatarSrc}
               alt={user.name}
-              width={84}
-              height={84}
-              className="rounded-full object-cover border-4 border-cyan-200 dark:border-cyan-800 bg-white mt-0 shadow"
+              width={80}
+              height={80}
+              className="rounded-full object-cover border-4 border-white shadow-md bg-white mt-2"
               draggable={false}
             />
-            <div className="w-full text-lg xs:text-xl font-extrabold text-cyan-900 dark:text-cyan-100 text-center break-words">{user.name}</div>
-            <div className="w-full text-xs xs:text-sm font-semibold text-slate-600 dark:text-slate-300 text-center break-all">{user.email}</div>
+            <div className="w-full text-lg font-extrabold text-[#1F2937] text-center break-words leading-tight">{user.name}</div>
+            <div className="w-full text-xs font-bold text-[#00A6A6] tracking-widest uppercase text-center break-all">Workspace Operativo</div>
             <LogoutButton className="
-              w-full justify-center text-base py-2 px-6 rounded-full mt-3
-              bg-gradient-to-r from-cyan-700 to-fuchsia-700
-              font-bold text-white shadow border-0
-              hover:bg-gradient-to-r hover:from-fuchsia-700 hover:to-cyan-700
-              transition
+              w-full justify-center text-sm py-3.5 px-6 rounded-xl mt-4
+              bg-gradient-to-r from-[#6A3DF0] to-[#7B4DFF]
+              font-bold text-white shadow-md shadow-[#6A3DF0]/20 border-0
+              hover:shadow-lg transition-all
             " />
           </div>
         </div>

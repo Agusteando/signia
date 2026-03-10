@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -6,11 +5,6 @@ import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
-/**
- * Smart logout button: uses different method per authentication flow.
- * - Empleado/candidate (NextAuth JWT): signOut()
- * - Admin/superadmin (session cookie): POST to /api/auth/logout, hard reload or redirect
- */
 export default function LogoutButton({ className = "" }) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -39,13 +33,13 @@ export default function LogoutButton({ className = "" }) {
 
   return (
     <button
-      className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-fuchsia-700 to-cyan-700 text-white font-bold text-sm shadow hover:from-cyan-700 hover:to-fuchsia-900 transition focus-visible:ring-2 focus:ring-fuchsia-400 outline-none disabled:opacity-70 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-[#6A3DF0] to-[#7B4DFF] text-white font-bold text-sm shadow-md shadow-[#6A3DF0]/20 hover:shadow-lg hover:shadow-[#6A3DF0]/30 hover:-translate-y-0.5 transition-all duration-300 focus-visible:ring-4 focus:ring-[#7B4DFF]/50 outline-none disabled:opacity-70 disabled:transform-none ${className}`}
       style={{ minWidth: 0 }}
       onClick={handleLogout}
       disabled={loading}
       title="Cerrar sesión"
     >
-      <ArrowRightOnRectangleIcon className="w-5 h-5 mr-1 stroke-2" />
+      <ArrowRightOnRectangleIcon className="w-5 h-5 stroke-2" />
       <span className="hidden xs:inline">Cerrar sesión</span>
     </button>
   );

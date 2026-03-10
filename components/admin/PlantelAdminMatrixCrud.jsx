@@ -1,383 +1,188 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
-import {
-  ShieldCheckIcon,
-  UserPlusIcon,
-  MagnifyingGlassIcon,
-  XMarkIcon,
-  InformationCircleIcon
-} from "@heroicons/react/24/outline";
-import { ShieldExclamationIcon, ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+import { useState, useEffect } from "react";
+import { PlusIcon, XMarkIcon, ShieldCheckIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 
-export default function GestorAccesosAdmin() {
+export default function PlantelAdminMatrixCrud() {
   const [data, setData] = useState({ admins: [], planteles: [] });
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [msg, setMsg] = useState("");
   
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [userToRevoke, setUserToRevoke] = useState(null);
-  
-  const [formName, setFormName] = useState("");
-  const [formEmail, setFormEmail] = useState("");
-  const [formRole, setFormRole] = useState("admin");
-  const [formPlanteles, setFormPlanteles] = useState(new Set());
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [open, setOpen] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({ name: "", email: "", role: "admin", plantelIds: [] });
+  const [adding, setAdding] = useState(false);
 
-  const fetchMatrix = async () => {
+  async function loadData() {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/plantel-admin-matrix", { credentials: "same-origin" });
-      if (res.ok) {
-        const d = await res.json();
-        setData({ admins: d.admins || [], planteles: d.planteles || [] });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const r = await fetch("/api/admin/plantel-admin-matrix");
+      if (r.ok) setData(await r.json());
+    } catch {}
+    setLoading(false);
+  }
 
-  useEffect(() => {
-    fetchMatrix();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
-  const filteredAdmins = useMemo(() => {
-    if (!search.trim()) return data.admins;
-    const q = search.trim().toLowerCase();
-    return data.admins.filter((a) => a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q));
-  }, [data.admins, search]);
-
-  const openAddModal = () => {
-    setEditingUser(null);
-    setFormName("");
-    setFormEmail("");
-    setFormRole("admin");
-    setFormPlanteles(new Set());
-    setErrorMsg("");
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (user) => {
-    setEditingUser(user);
-    setFormName(user.name);
-    setFormEmail(user.email);
-    setFormRole(user.role);
-    setFormPlanteles(new Set(user.plantelesAdmin.map(p => p.id)));
-    setErrorMsg("");
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingUser(null);
-  };
-
-  const togglePlantel = (id) => {
-    setFormPlanteles(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleSelectAll = () => setFormPlanteles(new Set(data.planteles.map(p => p.id)));
-  const handleDeselectAll = () => setFormPlanteles(new Set());
-
-  const handleSaveUser = async () => {
-    setIsSaving(true);
-    setErrorMsg("");
+  async function toggleAssign(adminId, plantelId, currentStatus) {
     try {
-      if (editingUser) {
-        const res = await fetch("/api/admin/plantel-admin-matrix", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: editingUser.id,
-            role: formRole,
-            plantelIds: Array.from(formPlanteles)
-          })
-        });
-        if (!res.ok) throw new Error((await res.json()).error || "Error al actualizar");
-      } else {
-        const res = await fetch("/api/admin/plantel-admin-matrix/add-admin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: formName,
-            email: formEmail,
-            role: formRole,
-            plantelIds: Array.from(formPlanteles)
-          })
-        });
-        if (!res.ok) throw new Error((await res.json()).error || "Error al agregar");
-      }
-      setIsModalOpen(false);
-      await fetchMatrix();
-    } catch (e) {
-      setErrorMsg(e.message);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleRevoke = async () => {
-    setIsSaving(true);
-    setErrorMsg("");
-    try {
-      const res = await fetch(`/api/admin/plantel-admin-matrix/remove-admin?id=${userToRevoke.id}`, {
-        method: "DELETE"
+      await fetch("/api/admin/plantel-admin-matrix/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId, plantelId, assigned: !currentStatus })
       });
-      if (!res.ok) throw new Error((await res.json()).error || "Error al revocar");
-      setIsRevokeModalOpen(false);
-      setUserToRevoke(null);
-      await fetchMatrix();
+      loadData();
+    } catch {}
+  }
+
+  async function createAdmin(e) {
+    e.preventDefault();
+    setAdding(true); setMsg("");
+    try {
+      const r = await fetch("/api/admin/plantel-admin-matrix/add-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAdmin)
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      setMsg("Administrador guardado exitosamente.");
+      setOpen(false);
+      setNewAdmin({ name: "", email: "", role: "admin", plantelIds: [] });
+      loadData();
     } catch(e) {
-      setErrorMsg(e.message);
-    } finally {
-      setIsSaving(false);
+      setMsg(e.message || "Error al guardar");
     }
-  };
+    setAdding(false);
+    setTimeout(()=>setMsg(""), 3000);
+  }
+
+  async function removeAdmin(id) {
+    if(!confirm("¿Revocar privilegios de administrador para este usuario? Se degradará a empleado normal.")) return;
+    try {
+      await fetch(`/api/admin/plantel-admin-matrix/remove-admin?id=${id}`, { method: "DELETE" });
+      loadData();
+    } catch {}
+  }
 
   return (
-    <div id="plantel-admin-matrix-crud" className="w-full bg-white border border-slate-200 shadow-sm rounded-xl p-4 sm:p-5 mb-6">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <ShieldCheckIcon className="w-5 h-5 text-indigo-600" />
-            Accesos y Permisos
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Controla quiénes administran qué planteles.</p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full sm:w-auto">
-            <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute left-2.5 top-2" />
-            <input 
-              placeholder="Buscar..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full sm:w-48 transition-all" 
-            />
-          </div>
-          <button 
-            className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm w-full sm:w-auto shrink-0" 
-            onClick={openAddModal}
-          >
-             <UserPlusIcon className="w-4 h-4" />
-             Nuevo Acceso
-          </button>
-        </div>
-      </header>
-
-      <div className="mb-4 bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-start gap-2.5 text-xs text-indigo-800">
-        <InformationCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-indigo-600" />
-        <p>
-          Únicamente los usuarios listados a continuación tienen el privilegio de acceder a este panel.
-        </p>
-      </div>
-      
-      <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">
-        <table className="min-w-[600px] w-full text-left text-xs sm:text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
-            <tr>
-              <th className="px-3 py-2.5 w-1/3">Administrador</th>
-              <th className="px-3 py-2.5 w-1/5">Rol</th>
-              <th className="px-3 py-2.5 w-1/3">Planteles Asignados</th>
-              <th className="px-3 py-2.5 text-right">Opciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-               <tr><td colSpan="4" className="text-center py-6 text-slate-500 font-medium">Cargando...</td></tr>
-            ) : filteredAdmins.length === 0 ? (
-               <tr><td colSpan="4" className="text-center py-6 text-slate-500 font-medium">No se encontraron cuentas activas.</td></tr>
-            ) : (
-               filteredAdmins.map((user) => (
-                 <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                   <td className="px-3 py-2">
-                     <div className="flex items-center gap-2.5">
-                       <img 
-                         src={user.picture || '/IMAGOTIPO-IECS-IEDIS.png'} 
-                         alt="" 
-                         width={28} 
-                         height={28} 
-                         className="rounded-full bg-slate-100 object-cover shrink-0 border border-slate-200 shadow-sm"
-                         onError={(e) => { e.target.onerror = null; e.target.src = "/IMAGOTIPO-IECS-IEDIS.png"; }}
-                       />
-                       <div className="min-w-0">
-                         <div className="font-semibold text-slate-900 truncate text-xs">{user.name}</div>
-                         <div className="text-[10px] text-slate-500 truncate">{user.email}</div>
-                       </div>
-                     </div>
-                   </td>
-                   <td className="px-3 py-2">
-                     {user.role === 'superadmin' ? (
-                        <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md text-[10px] font-semibold border border-purple-200">
-                          <ShieldCheckIcon className="w-3.5 h-3.5"/> Superadmin
-                        </span>
-                     ) : (
-                        <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md text-[10px] font-semibold border border-indigo-200">
-                          <ShieldExclamationIcon className="w-3.5 h-3.5"/> Admin Local
-                        </span>
-                     )}
-                   </td>
-                   <td className="px-3 py-2">
-                     {user.role === 'superadmin' ? (
-                        <span className="text-[10px] text-slate-500 font-medium">Acceso global</span>
-                     ) : (
-                        <div className="flex flex-wrap gap-1">
-                          {user.plantelesAdmin.map(p => (
-                             <span key={p.id} className="bg-white text-slate-700 px-1.5 py-0.5 rounded-md text-[10px] font-medium border border-slate-200">{p.name}</span>
-                          ))}
-                          {user.plantelesAdmin.length === 0 && <span className="text-[10px] text-red-600 font-medium bg-red-50 px-1.5 py-0.5 rounded-md border border-red-200">Sin planteles</span>}
-                        </div>
-                     )}
-                   </td>
-                   <td className="px-3 py-2 text-right">
-                     <button onClick={() => openEditModal(user)} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium mr-1.5 px-2 py-1 rounded-md hover:bg-indigo-50 transition">
-                       Editar
-                     </button>
-                     <button onClick={() => { setUserToRevoke(user); setIsRevokeModalOpen(true); }} className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded-md hover:bg-red-50 transition">
-                       Revocar
-                     </button>
-                   </td>
-                 </tr>
-               ))
-            )}
-          </tbody>
-        </table>
+    <div className="w-full bg-white border border-[#EEF2F7] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] rounded-2xl p-7 fade-in">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-extrabold text-[#1F2937] text-lg tracking-tight">Accesos Administrativos</h2>
+        <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6A3DF0] to-[#7B4DFF] hover:shadow-lg hover:shadow-[#6A3DF0]/30 hover:-translate-y-0.5 text-white text-sm rounded-xl font-bold transition-all shadow-md focus:outline-none focus:ring-4 ring-[#7B4DFF]/50">
+          <PlusIcon className="w-4 h-4 stroke-2" /> Nuevo Administrador
+        </button>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
-               <h3 className="font-semibold text-base text-slate-900">
-                 {editingUser ? "Configurar Permisos" : "Conceder Autorización"}
-               </h3>
-               <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 outline-none rounded-full p-1 hover:bg-slate-100 transition">
-                 <XMarkIcon className="w-5 h-5" />
-               </button>
-            </div>
-            
-            <div className="p-5 overflow-y-auto flex-1 space-y-5 bg-slate-50/50">
-               {errorMsg && (
-                 <div className="bg-red-50 text-red-700 text-sm p-3 rounded-lg border border-red-200 font-medium">
-                   {errorMsg}
-                 </div>
-               )}
-
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre</label>
-                   <input 
-                      value={formName} 
-                      onChange={(e) => setFormName(e.target.value)} 
-                      className="w-full border border-slate-300 bg-white rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition shadow-sm" 
-                      placeholder="Ej. Juan Pérez" 
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Correo</label>
-                   <input 
-                      value={formEmail} 
-                      onChange={(e) => setFormEmail(e.target.value)} 
-                      disabled={!!editingUser}
-                      className="w-full border border-slate-300 bg-white rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition shadow-sm disabled:opacity-60 disabled:bg-slate-100" 
-                      placeholder="usuario@casitaiedis.edu.mx" 
-                   />
-                 </div>
-               </div>
-
-               <div>
-                 <label className="block text-sm font-medium text-slate-700 mb-2">Nivel</label>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div onClick={() => setFormRole('admin')} className={`border p-3 rounded-xl cursor-pointer transition-all ${formRole==='admin' ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-300'}`}>
-                      <div className="font-semibold text-indigo-900 flex items-center gap-1.5 mb-1 text-sm">
-                        <ShieldExclamationIcon className="w-4 h-4 text-indigo-600" />
-                        Administrador
-                      </div>
-                      <div className="text-[11px] text-slate-500 leading-relaxed">Limitado a planteles autorizados.</div>
-                    </div>
-                    <div onClick={() => setFormRole('superadmin')} className={`border p-3 rounded-xl cursor-pointer transition-all ${formRole==='superadmin' ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-slate-200 bg-white hover:border-purple-300'}`}>
-                       <div className="font-semibold text-purple-900 flex items-center gap-1.5 mb-1 text-sm">
-                         <ShieldCheckIcon className="w-4 h-4 text-purple-600" />
-                         Superadmin
-                       </div>
-                       <div className="text-[11px] text-slate-500 leading-relaxed">Acceso a todo el sistema.</div>
-                    </div>
-                 </div>
-               </div>
-               
-               {formRole === 'admin' && (
-                  <div className="pt-1">
-                     <div className="flex items-center justify-between mb-1.5">
-                       <label className="block text-sm font-medium text-slate-700">Asignación de Planteles</label>
-                       <div className="flex gap-2">
-                          <button type="button" onClick={handleSelectAll} className="text-[10px] font-medium text-indigo-700 hover:text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded">Todos</button>
-                          <button type="button" onClick={handleDeselectAll} className="text-[10px] font-medium text-slate-600 hover:text-slate-800 bg-slate-200 px-2 py-0.5 rounded">Ninguno</button>
-                       </div>
-                     </div>
-                     <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg p-1.5 space-y-0.5 bg-white shadow-inner">
-                        {data.planteles.map(p => (
-                           <label key={p.id} className="flex items-center gap-2.5 p-2 hover:bg-slate-50 rounded-md cursor-pointer transition-colors border border-transparent">
-                              <input 
-                                type="checkbox" 
-                                checked={formPlanteles.has(p.id)} 
-                                onChange={() => togglePlantel(p.id)} 
-                                className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
-                              />
-                              <span className="text-xs font-medium text-slate-800">{p.name}</span>
-                           </label>
-                        ))}
-                     </div>
-                  </div>
-               )}
-            </div>
-            
-            <div className="px-5 py-3 border-t border-slate-100 bg-white flex justify-end gap-2.5">
-               <button onClick={closeModal} className="px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md transition border border-transparent">Cancelar</button>
-               <button 
-                 onClick={handleSaveUser} 
-                 disabled={isSaving || !formEmail.trim() || !formName.trim()} 
-                 className="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50 transition-colors shadow-sm"
-               >
-                 {isSaving ? "Guardando..." : "Guardar Accesos"}
-               </button>
-            </div>
-          </div>
+      {msg && (
+        <div className="mb-5 px-5 py-3 rounded-xl bg-emerald-50 border border-[#00A6A6]/20 text-[#00A6A6] text-sm font-bold flex items-center gap-3 shadow-sm">
+          <CheckCircleIcon className="w-5 h-5 stroke-2"/> {msg}
         </div>
       )}
 
-      {isRevokeModalOpen && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col border border-slate-100">
-             <div className="p-5 flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-3">
-                   <ExclamationTriangleIcon className="w-6 h-6" />
+      {loading ? (
+        <div className="text-center py-10 text-[#6A3DF0] font-bold text-sm bg-[#F6F8FB] rounded-xl border border-[#EEF2F7] animate-pulse">Cargando permisos...</div>
+      ) : (
+        <div className="overflow-x-auto border border-[#EEF2F7] rounded-2xl shadow-inner bg-[#F6F8FB]/50">
+          <table className="min-w-full table-auto text-sm border-collapse">
+            <thead>
+              <tr className="bg-[#F6F8FB] border-b border-[#EEF2F7] uppercase text-[10px] tracking-widest text-slate-400">
+                <th className="px-5 py-4 text-left font-bold w-1/3">Usuario / Email</th>
+                <th className="px-5 py-4 text-left font-bold w-[120px]">Rol</th>
+                <th className="px-5 py-4 text-left font-bold">Planteles Asignados (Solo Admins)</th>
+                <th className="px-5 py-4 text-right font-bold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.admins.map(a => (
+                <tr key={a.id} className="border-b border-[#EEF2F7] hover:bg-white transition-colors">
+                  <td className="px-5 py-4">
+                    <div className="font-extrabold text-[#1F2937] text-sm">{a.name}</div>
+                    <div className="text-xs text-slate-500 font-medium">{a.email}</div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex px-3 py-1 rounded-lg text-[11px] font-extrabold ring-1 ring-inset shadow-sm ${
+                      a.role === "superadmin" ? "bg-purple-50 text-[#6A3DF0] ring-[#6A3DF0]/20" : "bg-emerald-50 text-[#00A6A6] ring-[#00A6A6]/20"
+                    }`}>
+                      {a.role === "superadmin" ? "Superadmin" : "Admin"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    {a.role === "superadmin" ? (
+                      <span className="text-xs font-bold text-slate-400 italic bg-[#F6F8FB] px-3 py-1.5 rounded-lg">Acceso Total</span>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {data.planteles.map(p => {
+                          const assigned = a.plantelesAdmin.some(x => x.id === p.id);
+                          return (
+                            <button
+                              key={p.id}
+                              onClick={() => toggleAssign(a.id, p.id, assigned)}
+                              className={`text-[10px] font-extrabold px-3 py-1.5 rounded-lg border transition-all shadow-sm ${
+                                assigned ? "bg-[#00A6A6] text-white border-[#00A6A6]" : "bg-white text-slate-500 border-[#EEF2F7] hover:bg-[#F6F8FB] hover:text-[#1F2937]"
+                              }`}
+                            >
+                              {p.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <button onClick={() => removeAdmin(a.id)} className="text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow-md hover:shadow-rose-600/30">
+                      Revocar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-50 bg-[#1F2937]/40 backdrop-blur-sm flex items-center justify-center p-4 fade-in">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg border border-[#EEF2F7] shadow-2xl">
+            <h3 className="font-extrabold text-xl text-[#1F2937] mb-6 flex items-center gap-2">
+              <ShieldCheckIcon className="w-6 h-6 text-[#6A3DF0]" /> Nuevo Acceso Administrador
+            </h3>
+            <form onSubmit={createAdmin} className="flex flex-col gap-5">
+              <div>
+                <label className="text-xs font-bold text-[#1F2937] uppercase tracking-wide ml-1 mb-1 block">Nombre completo</label>
+                <input required value={newAdmin.name} onChange={e => setNewAdmin({...newAdmin, name: e.target.value})} className="w-full rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6A3DF0]/30 font-medium text-[#1F2937] transition" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-[#1F2937] uppercase tracking-wide ml-1 mb-1 block">Correo institucional</label>
+                <input required type="email" value={newAdmin.email} onChange={e => setNewAdmin({...newAdmin, email: e.target.value})} className="w-full rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6A3DF0]/30 font-medium text-[#1F2937] transition" placeholder="@casitaiedis.edu.mx" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-[#1F2937] uppercase tracking-wide ml-1 mb-1 block">Nivel de Rol</label>
+                <select value={newAdmin.role} onChange={e => setNewAdmin({...newAdmin, role: e.target.value, plantelIds: e.target.value === 'superadmin' ? [] : newAdmin.plantelIds})} className="w-full rounded-xl border border-[#EEF2F7] bg-[#F6F8FB] px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6A3DF0]/30 font-bold text-[#1F2937] transition cursor-pointer">
+                  <option value="admin">Administrador de Plantel (Parcial)</option>
+                  <option value="superadmin">Superadmin (Acceso Total)</option>
+                </select>
+              </div>
+              {newAdmin.role === "admin" && (
+                <div className="bg-[#F6F8FB] p-4 rounded-xl border border-[#EEF2F7]">
+                  <label className="text-xs font-bold text-[#1F2937] uppercase tracking-wide mb-3 block">Planteles permitidos</label>
+                  <div className="flex flex-col gap-3 max-h-40 overflow-y-auto pr-2">
+                    {data.planteles.map(p => (
+                      <label key={p.id} className="flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" checked={newAdmin.plantelIds.includes(p.id)} onChange={e => {
+                          const ids = e.target.checked ? [...newAdmin.plantelIds, p.id] : newAdmin.plantelIds.filter(id => id !== p.id);
+                          setNewAdmin({...newAdmin, plantelIds: ids});
+                        }} className="w-5 h-5 accent-[#00A6A6] border-[#EEF2F7] rounded cursor-pointer" />
+                        <span className="text-sm font-bold text-slate-600 group-hover:text-[#1F2937] transition">{p.name}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-1">¿Revocar privilegios?</h3>
-                <p className="text-xs text-slate-600 mb-3">
-                  Se anularán los derechos de <b>{userToRevoke?.name}</b> de forma inmediata.
-                </p>
-                <p className="text-[11px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
-                  La cuenta volverá al rol estándar. Los expedientes se conservarán intactos.
-                </p>
-                
-                {errorMsg && <div className="mt-3 text-xs text-red-700 font-medium bg-red-50 p-2 rounded-md w-full">{errorMsg}</div>}
-             </div>
-             <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex gap-2">
-               <button onClick={() => { setIsRevokeModalOpen(false); setErrorMsg(""); }} className="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-md w-full transition shadow-sm">
-                 Cancelar
-               </button>
-               <button onClick={handleRevoke} disabled={isSaving} className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md w-full disabled:opacity-50 transition shadow-sm">
-                 {isSaving ? "Ejecutando..." : "Sí, Revocar"}
-               </button>
-             </div>
+              )}
+              <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-[#EEF2F7]">
+                <button type="button" onClick={() => setOpen(false)} className="px-5 py-3 rounded-xl font-bold text-slate-500 bg-[#F6F8FB] hover:bg-slate-200 transition">Cancelar</button>
+                <button type="submit" disabled={adding} className="px-6 py-3 rounded-xl font-extrabold text-white bg-gradient-to-r from-[#6A3DF0] to-[#7B4DFF] hover:shadow-lg hover:shadow-[#6A3DF0]/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 shadow-md">
+                  {adding ? "Guardando..." : "Crear Administrador"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

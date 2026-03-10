@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { ArrowLeftCircleIcon, ArrowRightCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
 import { stepsExpediente } from "../stepMetaExpediente";
-import { wizardCard, secondaryButton, mainButton } from "../../lib/ui-classes";
 import OnboardingStepper from "./OnboardingStepper";
 import StepPlantelSelection from "./StepPlantelSelection";
 import StepDigitalPhoto from "./StepDigitalPhoto";
@@ -26,7 +25,6 @@ const iconMap = {
   CheckCircleIcon:        require("@heroicons/react/24/solid").CheckCircleIcon,
 };
 
-// Helper: is expediente (user part) complete? — all user upload steps fulfilled
 function isUserExpedienteDigitalComplete(stepStatus) {
   return stepsExpediente
     .filter(s => !s.adminUploadOnly && !s.isPlantelSelection)
@@ -42,7 +40,6 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
   const [stepHistory, setStepHistory] = useState({});
   const [planteles, setPlanteles] = useState([]);
 
-  // Show only non-admin-upload steps for user; add summary step
   const userSteps = useMemo(
     () =>
       stepsExpediente.filter(s => !s.adminUploadOnly)
@@ -51,7 +48,6 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
   );
   const totalSteps = userSteps.length;
 
-  // Logic for file/document upload and state
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
@@ -59,19 +55,20 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
   const [savingPlantel, setSavingPlantel] = useState(false);
   const successTimeout = useRef();
 
-  // Bypass logic: session-based, for "Necesito actualizar mis documentos"
   const [bypassWelcome, setBypassWelcome] = useState(false);
   useEffect(() => {
     if (typeof window !== "undefined") {
       setBypassWelcome(window.sessionStorage.getItem("expedienteWizardBypass") === "true");
     }
   }, [userProp.id]);
+  
   function handleBypassClick() {
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("expedienteWizardBypass", "true");
       setBypassWelcome(true);
     }
   }
+  
   function handleBypassExit() {
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem("expedienteWizardBypass");
@@ -119,7 +116,6 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
     setSavingPlantel(true);
     setFetchError("");
     try {
-      // PATCH plantelId
       let userPatchOk = true;
       if (user.plantelId !== parseInt(plantelId)) {
         const pRes = await fetch("/api/me/plantel", {
@@ -136,7 +132,7 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
           return;
         }
       }
-      // PATCH rfc, curp if changed
+      
       if (
         String((user.rfc || "")).trim().toUpperCase() !== (rfc || "").trim().toUpperCase() ||
         String((user.curp || "")).trim().toUpperCase() !== (curp || "").trim().toUpperCase()
@@ -154,7 +150,7 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
           return;
         }
       }
-      // PATCH email if changed
+      
       if ((user.email || "").trim() !== (email || "").trim()) {
         const eRes = await fetch("/api/me/email", {
           method: "PATCH",
@@ -169,6 +165,7 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
           return;
         }
       }
+      
       setUser(u => ({
         ...u,
         plantelId: parseInt(plantelId, 10),
@@ -261,13 +258,11 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
     xhr.send(formData);
   }
 
-  // Main check for welcome/expediente-completo
   const expedienteCompleto =
     user &&
     user.role === "employee" &&
     isUserExpedienteDigitalComplete(stepStatus);
 
-  // Calculate completed steps, fulfillment, etc.
   const steps = userSteps;
   const step = steps[currentStep];
   const status = (step.key && stepStatus?.[step.key]) ? stepStatus[step.key] : {};
@@ -290,89 +285,89 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
     return !!(st.checklist && st.checklist.fulfilled);
   }
 
-  const canGoNext =
-    currentStep < totalSteps - 1 && isCurrentStepFulfilled(step) && !uploading && !savingPlantel;
+  const canGoNext = currentStep < totalSteps - 1 && isCurrentStepFulfilled(step) && !uploading && !savingPlantel;
   const canGoPrev = currentStep > 0 && !uploading && !savingPlantel;
-  const nextButtonBase = mainButton + " min-w-[128px] flex items-center gap-2 justify-center transition relative overflow-visible";
-  const nextButtonDisabled = "opacity-40 grayscale pointer-events-none";
-  const prevButtonDisabled = "opacity-40 grayscale pointer-events-none";
-  const stickyTop = "top-16";
 
   if (loadingData)
     return (
-      <div className="w-full flex flex-col items-center justify-center py-12">
-        <span className="text-slate-500 text-lg font-bold">Cargando expediente...</span>
+      <div className="w-full flex flex-col items-center justify-center py-20 fade-in">
+        <div className="w-10 h-10 border-4 border-[#00A6A6] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <span className="text-[#1F2937] text-lg font-extrabold tracking-tight">Sincronizando expediente...</span>
       </div>
     );
 
   if (fetchError)
     return (
-      <div className="w-full flex flex-col items-center justify-center py-8">
-        <span className="text-red-500 font-bold">{fetchError}</span>
+      <div className="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-lg border border-red-200 flex flex-col items-center justify-center p-10 mt-10">
+        <XCircleIcon className="w-16 h-16 text-red-500 mb-4" />
+        <span className="text-red-700 font-bold text-center">{fetchError}</span>
       </div>
     );
 
-  // Only show Welcome screen if role=employee AND expediente complete AND bypass not active
   if (expedienteCompleto && !bypassWelcome) {
     return <WelcomeApproved user={user} onRequestBypass={handleBypassClick} />;
   }
 
-  const showEmpNotCompleteBanner =
-    user && user.role === "employee" && !expedienteCompleto;
+  const showEmpNotCompleteBanner = user && user.role === "employee" && !expedienteCompleto;
 
   return (
-    <div className="w-full flex flex-col items-center justify-center min-h-[620px] relative">
-      <div className={`w-full z-30 sticky ${stickyTop} px-0 xs:px-1 sm:px-0 bg-white/85 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100/70 dark:border-slate-900/70`}>
+    <div className="w-full flex flex-col items-center justify-center min-h-[620px] relative fade-in px-4 sm:px-6">
+      
+      <div className="w-full max-w-3xl mx-auto mb-6 bg-white/80 backdrop-blur-2xl border border-[#EEF2F7] shadow-[0_4px_24px_-8px_rgba(0,0,0,0.04)] rounded-3xl p-4 mt-6">
         <OnboardingStepper
           steps={steps}
           activeStep={currentStep}
           onStepChange={(idx) => setCurrentStep(idx)}
           stepStatus={stepStatus || {}}
           allowFreeJump={true}
-          className="py-1"
         />
-        {/* Render Cancelar/Salir button only during bypass mode */}
         {bypassWelcome && (
-          <div className="flex justify-end pt-1 pr-2">
+          <div className="flex justify-center w-full mt-4 pt-4 border-t border-[#EEF2F7]">
             <button
               type="button"
-              className="flex items-center gap-1 font-bold text-fuchsia-600 hover:text-cyan-700 text-sm bg-slate-50 dark:bg-slate-900 px-3 py-1 rounded-full border border-fuchsia-200 dark:border-fuchsia-700 transition shadow"
+              className="flex items-center justify-center gap-2 font-bold text-[#6A3DF0] hover:text-[#7B4DFF] text-sm bg-[#F6F8FB] hover:bg-white px-5 py-2.5 rounded-xl border border-[#EEF2F7] hover:border-[#6A3DF0]/30 transition-all shadow-sm w-full sm:w-auto"
               onClick={handleBypassExit}
-              tabIndex={0}
             >
               <XCircleIcon className="w-5 h-5" />
-              Cancelar actualización
+              Finalizar actualización y volver al inicio
             </button>
           </div>
         )}
       </div>
-      <section className={wizardCard + " relative mt-0"}>
+
+      <section className="w-full max-w-3xl mx-auto bg-white rounded-3xl shadow-[0_8px_32px_-8px_rgba(0,0,0,0.08)] border border-[#EEF2F7] relative overflow-hidden flex flex-col items-center pt-10 pb-24 px-6 sm:px-12">
+        
         {showEmpNotCompleteBanner && (
-          <div className="w-full mb-4 text-center px-2 py-2 rounded-lg bg-yellow-50 border-l-4 border-yellow-400 text-yellow-900 font-bold text-sm">
-            Eres empleado(a), pero tu expediente digital está incompleto.
-            Por favor, termina de subir todos los documentos requeridos para concluir tu expediente.
+          <div className="w-full mb-8 text-center px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 font-bold text-sm shadow-sm flex items-start gap-3">
+            <XCircleIcon className="w-6 h-6 text-amber-500 shrink-0" />
+            <div className="text-left">
+              Eres empleado(a) activo, pero tu expediente digital requiere atención.
+              <span className="block text-amber-700 font-medium text-xs mt-1">Por favor, concluye la entrega de todos los documentos requeridos.</span>
+            </div>
           </div>
         )}
-        <div className="flex flex-col items-center justify-center mb-3 pt-0">
+        
+        <div className="flex flex-col items-center justify-center mb-8 text-center">
           {step.iconKey && iconMap[step.iconKey] && (
-            <div className="w-14 h-14 relative mb-2">
+            <div className="w-16 h-16 bg-[#F6F8FB] rounded-2xl flex items-center justify-center border border-[#EEF2F7] shadow-inner mb-5 text-[#00A6A6]">
               {(() => {
                 const Icon = iconMap[step.iconKey];
-                return <Icon className="h-9 w-9 md:h-11 md:w-11 align-middle inline-block" />;
+                return <Icon className="h-8 w-8 md:h-10 md:w-10 stroke-2" />;
               })()}
             </div>
           )}
           {step.key !== "__expediente_summary__" &&
-            <div className="flex flex-col items-center">
-              <div className="inline-flex items-center text-xl xs:text-2xl md:text-3xl font-extrabold tracking-tight text-purple-900 dark:text-fuchsia-200 mb-0.5 leading-tight">
-                <span>{step.label}</span>
+            <div className="flex flex-col items-center max-w-lg">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1F2937] mb-2 leading-tight">
+                {step.label}
               </div>
-              <div className="text-xs xs:text-base md:text-lg text-slate-500 dark:text-slate-300 text-center max-w-[95vw] px-2 font-semibold leading-normal">
+              <div className="text-sm sm:text-base text-slate-500 font-medium leading-relaxed">
                 {step.description}
               </div>
             </div>
           }
         </div>
+        
         {step.key === "plantel" ? (
           <StepPlantelSelection
             plantelId={user.plantelId}
@@ -407,62 +402,27 @@ export default function EmployeeOnboardingWizard({ user: userProp, mode = "exped
             accept={step.accept || "application/pdf"}
           />
         )}
-        <div className="flex w-full justify-between items-center pt-10 sm:pt-12 pb-[68px] md:pb-6 gap-3 sticky bottom-0 bg-transparent z-10">
+        
+        <div className="absolute bottom-0 left-0 w-full flex justify-between items-center px-6 sm:px-12 py-5 bg-[#F6F8FB] border-t border-[#EEF2F7]">
           <button
-            className={secondaryButton + " min-w-[120px]" + (!canGoPrev ? " " + prevButtonDisabled : "")}
-            style={{ fontWeight: 900, fontSize: "1.08em" }}
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm bg-white border border-[#EEF2F7] text-slate-600 hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 ${!canGoPrev ? "opacity-50 grayscale cursor-not-allowed" : ""}`}
             onClick={() => setCurrentStep(currentStep - 1)}
             disabled={!canGoPrev}
-            tabIndex={0}
           >
-            <ArrowLeftCircleIcon className="w-6 h-6" />
+            <ArrowLeftCircleIcon className="w-5 h-5" />
             Atrás
           </button>
+          
           <button
-            className={
-              nextButtonBase +
-              (!canGoNext ? " " + nextButtonDisabled : "")
-            }
-            style={{
-              fontWeight: 900,
-              fontSize: "1.11em",
-            }}
+            className={`px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-[#00A6A6] to-[#0FB5C9] text-white shadow-md hover:shadow-lg transition-all flex items-center gap-2 ${!canGoNext ? "opacity-50 grayscale cursor-not-allowed" : "hover:-translate-y-0.5"}`}
             disabled={!canGoNext}
-            onClick={() => {
-              if (canGoNext) setCurrentStep(currentStep + 1);
-            }}
-            tabIndex={0}
-            aria-disabled={!canGoNext}
+            onClick={() => { if (canGoNext) setCurrentStep(currentStep + 1); }}
           >
             <span>Siguiente</span>
-            <ArrowRightCircleIcon className="w-6 h-6" />
+            <ArrowRightCircleIcon className="w-5 h-5" />
           </button>
         </div>
       </section>
-      <style jsx global>{`
-        @keyframes pop {
-          0% { transform: scale(1);}
-          20% { transform: scale(1.10);}
-          40% { transform: scale(0.96);}
-          60% { transform: scale(1.04);}
-          80% { transform: scale(0.98);}
-          100% { transform: scale(1);}
-        }
-        .animate-pop { animation: pop 0.8s cubic-bezier(.18,1.3,.99,1) both; }
-        @keyframes sparkle {
-          0% { opacity: 0; transform: scale(0.6);}
-          20% { opacity: 1; transform: scale(1.08);}
-          50% { opacity: 1; transform: scale(0.94);}
-          75% { opacity: 1; transform: scale(1.03);}
-          100% { opacity: 0; transform: scale(1.16);}
-        }
-        .animate-sparkle { animation: sparkle 0.9s cubic-bezier(.14,1.3,.45,1.02) both; }
-        .animate-fade-in { animation: fadein 0.888s both; }
-        @keyframes fadein {
-          0% { opacity: 0; transform: translateY(-10px);}
-          100% { opacity: 1; transform: translateY(0);}
-        }
-      `}</style>
     </div>
   );
 }

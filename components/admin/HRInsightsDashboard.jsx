@@ -1,86 +1,106 @@
 "use client";
-import React, { useMemo } from "react";
-import Image from "next/image";
-import { SparklesIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/solid";
+import { useMemo, useState } from "react";
 
-export default function HRInsightsDashboard({ users, planteles }) {
-  // Generate random stable positions for avatar bubbles
-  const avatarBubbles = useMemo(() => {
-    const validUsers = users.filter(u => u.picture && u.isActive).slice(0, 14);
-    return validUsers.map((user, i) => {
-      const size = Math.random() > 0.6 ? 56 : 40;
-      const animation = i % 3 === 0 ? 'animate-float' : i % 2 === 0 ? 'animate-float-delayed' : 'animate-float-slow';
-      return {
-        ...user,
-        size,
-        animation,
-        top: `${15 + Math.random() * 60}%`,
-        left: `${10 + Math.random() * 75}%`,
-      };
-    });
+export default function HRInsightsDashboard({ users = [], planteles = [] }) {
+  const [hoveredUser, setHoveredUser] = useState(null);
+
+  // Filter active employees with pictures for the bubble map
+  const activeAvatars = useMemo(() => {
+    return users
+      .filter(u => u.isActive && u.role === "employee" && u.picture)
+      .slice(0, 36); 
   }, [users]);
 
-  const completionRate = Math.round((users.filter(u => u.fullyCompleted).length / (users.length || 1)) * 100);
+  // Calculate distinct floating positions for the bubbles using a radial distribution pattern
+  const bubbles = useMemo(() => {
+    return activeAvatars.map((user, i) => {
+      const angle = (i / activeAvatars.length) * Math.PI * 2;
+      const radius = 25 + Math.random() * 22; // Distance from center
+      const x = 50 + radius * Math.cos(angle);
+      const y = 50 + radius * Math.sin(angle);
+      
+      const delay = Math.random() * -10; 
+      const duration = 4 + Math.random() * 4;
+      const size = 36 + Math.random() * 24; 
+
+      return { user, x, y, delay, duration, size };
+    });
+  }, [activeAvatars]);
 
   return (
-    <div className="card-signia bg-white w-full p-8 lg:p-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+    <div className="relative w-full h-[450px] bg-gradient-to-br from-[#1F2937] to-[#0a0f18] rounded-3xl shadow-[0_12px_40px_-12px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col items-center justify-center p-6 fade-in border border-[#1F2937]">
       
-      {/* Background Gradients */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-signia-purple opacity-[0.08] blur-[100px] rounded-full pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-signia-teal opacity-[0.08] blur-[100px] rounded-full pointer-events-none" />
+      {/* Abstract Map Background Grid */}
+      <div 
+        className="absolute inset-0 opacity-[0.15] pointer-events-none select-none" 
+        style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, #00A6A6 1px, transparent 0)`,
+          backgroundSize: `32px 32px`
+        }}
+      ></div>
+      
+      {/* Ambient Glows */}
+      <div className="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-[#6A3DF0] rounded-full filter blur-[120px] opacity-20 pointer-events-none"></div>
+      <div className="absolute bottom-[20%] right-[20%] w-[40%] h-[40%] bg-[#00A6A6] rounded-full filter blur-[120px] opacity-20 pointer-events-none"></div>
 
-      {/* Left Content */}
-      <div className="relative z-10 w-full lg:w-5/12 flex flex-col">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00A6A6]/10 text-[#00A6A6] text-xs font-bold w-fit mb-6">
-          <SparklesIcon className="w-4 h-4" /> Inteligencia de Red
-        </div>
-        <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
-          Conectando el talento <br/> en todo <span className="text-gradient-signia">IECS-IEDIS</span>
-        </h2>
-        <p className="text-slate-500 font-medium text-base mb-8">
-          Actualmente gestionas un ecosistema de {users.length} colaboradores distribuidos en {planteles.length} planteles. El {completionRate}% tiene su expediente completamente normalizado.
-        </p>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-signia-purple/30 hover:bg-white transition-all cursor-default group">
-            <span className="block text-3xl font-black text-slate-900 group-hover:text-signia-purple transition-colors">{users.filter(u=>u.role==='employee').length}</span>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Empleados Activos</span>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-signia-teal/30 hover:bg-white transition-all cursor-default group">
-            <span className="block text-3xl font-black text-slate-900 group-hover:text-signia-teal transition-colors">{planteles.length}</span>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Centros de Trabajo</span>
-          </div>
-        </div>
+      {/* Animated Sonar Rings */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="absolute w-[200px] h-[200px] border-[2px] border-[#6A3DF0]/30 rounded-full" style={{ animation: 'pulse-ring 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></div>
+        <div className="absolute w-[350px] h-[350px] border border-[#00A6A6]/20 rounded-full" style={{ animation: 'pulse-ring 5s cubic-bezier(0.4, 0, 0.6, 1) infinite 1.5s' }}></div>
       </div>
 
-      {/* Right Content: Avatar Constellation */}
-      <div className="relative z-10 w-full lg:w-7/12 h-[320px] lg:h-[380px] bg-slate-50/50 border border-white/50 rounded-3xl shadow-inner overflow-hidden">
-        {/* Center Anchor */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white rounded-full shadow-xl border border-slate-100 flex items-center justify-center z-20">
-          <Image src="/signia.png" alt="Signia" width={50} height={50} className="object-contain" />
-        </div>
-        
-        {/* Floating Employee Bubbles */}
-        {avatarBubbles.map((bubble, i) => (
-          <div 
-            key={i} 
-            className={`absolute z-10 group cursor-crosshair ${bubble.animation}`}
-            style={{ top: bubble.top, left: bubble.left }}
+      {/* Centered Logo */}
+      <div className="relative z-30 w-36 h-36 bg-white/10 backdrop-blur-md rounded-full shadow-[0_0_60px_rgba(106,61,240,0.4)] flex items-center justify-center border border-white/20 p-5">
+         <img src="/signia.png" alt="Signia" className="w-full h-auto object-contain brightness-0 invert drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+      </div>
+
+      {/* Animated Floating Bubbles */}
+      <div className="absolute inset-0 z-20">
+        {bubbles.map((b, i) => (
+          <div
+            key={i}
+            onMouseEnter={() => setHoveredUser(b.user)}
+            onMouseLeave={() => setHoveredUser(null)}
+            className="absolute rounded-full border-2 border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.5)] overflow-hidden bg-[#1F2937] hover:border-[#00A6A6] hover:z-50 hover:scale-125 transition-transform duration-300 cursor-pointer"
+            style={{
+              left: `${b.x}%`,
+              top: `${b.y}%`,
+              width: `${b.size}px`,
+              height: `${b.size}px`,
+              transform: 'translate(-50%, -50%)',
+              animation: `float-bubble ${b.duration}s ease-in-out infinite alternate`,
+              animationDelay: `${b.delay}s`
+            }}
           >
-            <div 
-              className="rounded-full overflow-hidden border-2 border-white shadow-lg transition-transform group-hover:scale-125 group-hover:border-signia-purple group-hover:z-30"
-              style={{ width: bubble.size, height: bubble.size }}
-            >
-              <img src={bubble.picture} alt={bubble.name} className="w-full h-full object-cover" />
-            </div>
-            
-            {/* Tooltip Drilldown */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs py-1.5 px-3 rounded-lg shadow-xl pointer-events-none whitespace-nowrap z-40">
-              <p className="font-bold">{bubble.name}</p>
-              <p className="text-slate-300 font-medium">{bubble.puesto || 'Sin puesto asignado'}</p>
-            </div>
+            <img src={b.user.picture} alt={b.user.name} className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'} />
           </div>
         ))}
+      </div>
+
+      {/* Interactive Tooltip */}
+      {hoveredUser && (
+        <div className="absolute top-8 right-8 z-50 bg-white/95 backdrop-blur-xl px-5 py-3 rounded-2xl shadow-2xl border border-white flex items-center gap-4 animate-fade-in pointer-events-none">
+          <img src={hoveredUser.picture} className="w-12 h-12 rounded-full border-2 border-[#6A3DF0] object-cover" />
+          <div>
+            <p className="font-extrabold text-[#1F2937] leading-tight">{hoveredUser.name}</p>
+            <p className="text-xs font-bold text-[#00A6A6] tracking-wide">{hoveredUser.puesto || "Colaborador Activo"}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Overlay Data */}
+      <div className="absolute bottom-8 left-8 z-30">
+        <h3 className="text-white font-extrabold text-2xl tracking-tight drop-shadow-md">Ecosistema Signia</h3>
+        <p className="text-white/70 text-sm font-medium tracking-wide">Densidad organizacional en tiempo real</p>
+      </div>
+
+      <div className="absolute bottom-8 right-8 z-30 flex items-center gap-3">
+        <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold text-sm shadow-lg">
+          <span className="text-[#00A6A6]">{users.filter(u=>u.role==="employee").length}</span> Empleados
+        </div>
+        <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold text-sm shadow-lg">
+          <span className="text-[#6A3DF0]">{planteles.length}</span> Planteles
+        </div>
       </div>
     </div>
   );

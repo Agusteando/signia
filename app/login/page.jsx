@@ -1,11 +1,5 @@
-
 "use client";
 
-/**
- * Refined NextAuth login for IECS-IEDIS employees/candidates.
- * Styled to match brand & expediente wizard: glassy card, better spacing, logo header.
- * Uses signIn("credentials") from next-auth/react for proper cookie/session.
- */
 import { useState } from "react";
 import Image from "next/image";
 import { ArrowRightEndOnRectangleIcon, CheckCircleIcon, KeyIcon } from "@heroicons/react/24/solid";
@@ -54,84 +48,90 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-fuchsia-50 via-cyan-50 to-emerald-50 dark:from-[#181e2a] dark:via-[#192736] dark:to-[#225245] p-4">
-      <div className="w-full max-w-md xs:max-w-xl mx-auto relative bg-white/85 dark:bg-slate-900/90 shadow-2xl rounded-3xl px-5 xs:px-9 py-8 sm:py-10 border border-cyan-100 dark:border-cyan-800 flex flex-col items-center backdrop-blur-2xl">
-        {/* Brand */}
-        <div className="flex flex-col items-center gap-1 mb-5 select-none">
-          <div className="mb-2 relative w-14 h-14 xs:w-16 xs:h-16">
-            <Image
-              src="/IMAGOTIPO-IECS-IEDIS.png"
-              alt="IECS-IEDIS"
-              fill
-              className="object-contain bg-white rounded-xl shadow-sm"
-              priority
-            />
-          </div>
-          <span className="font-fredoka font-bold text-lg sm:text-xl text-cyan-800 dark:text-cyan-200 tracking-tight">IECS-IEDIS</span>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F6F8FB] relative overflow-hidden p-4">
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#00A6A6] rounded-full mix-blend-multiply filter blur-[120px] opacity-10 animate-pulse pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#6A3DF0] rounded-full mix-blend-multiply filter blur-[120px] opacity-10 animate-pulse pointer-events-none" style={{ animationDelay: '2s' }}></div>
+
+      <div className="w-full max-w-md xs:max-w-xl mx-auto relative bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_-8px_rgba(0,0,0,0.08)] rounded-3xl px-8 py-12 border border-white flex flex-col items-center z-10 fade-in">
+        
+        <div className="flex flex-col items-center gap-3 mb-8 select-none">
+          <Image
+            src="/signia.png"
+            alt="Signia"
+            width={160}
+            height={50}
+            className="object-contain drop-shadow-sm"
+            priority
+          />
         </div>
-        <span className="mx-auto mb-1 text-center inline-flex items-center gap-2 font-bold text-base xs:text-xl text-cyan-800 dark:text-cyan-100 tracking-tight select-none">
-          <ArrowRightEndOnRectangleIcon className="w-7 h-7 text-cyan-700 dark:text-cyan-300" />
-          Acceso de Empleados y Candidatos
+        
+        <span className="mx-auto mb-1 text-center inline-flex items-center gap-2 font-extrabold text-xl text-[#1F2937] tracking-tight select-none">
+          <ArrowRightEndOnRectangleIcon className="w-6 h-6 text-[#00A6A6]" />
+          Acceso Operativo
         </span>
-        <div className="text-slate-700 dark:text-slate-200 text-xs xs:text-sm font-semibold text-center mb-5">
-          Expediente Laboral Digital IECS-IEDIS<br />
-          <span className="text-cyan-700 dark:text-cyan-300">Ingresa tus datos institucionales</span>
+        <div className="text-slate-500 text-sm font-medium text-center mb-8">
+          Workspace de empleados y talento.
         </div>
-        <form className="w-full flex flex-col gap-2 mt-2" onSubmit={handleSubmit} autoComplete="off">
-          <label className="font-semibold text-xs text-cyan-700 dark:text-cyan-200">Correo electrónico</label>
-          <input
-            className="rounded-xl px-4 py-2 border border-cyan-100 dark:border-cyan-800 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-cyan-400 transition text-base shadow-md dark:shadow-none"
-            type="email"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            required
-            placeholder="tu@correo.com"
-            value={form.email}
-            onChange={handleChange}
-          />
-          <label className="font-semibold text-xs text-cyan-700 dark:text-cyan-200">Contraseña</label>
-          <input
-            className="rounded-xl px-4 py-2 border border-cyan-100 dark:border-cyan-800 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-cyan-400 transition text-base shadow-md dark:shadow-none"
-            type="password"
-            name="password"
-            required
-            autoComplete="current-password"
-            placeholder="Tu contraseña segura"
-            value={form.password}
-            onChange={handleChange}
-          />
-          <button
-            className="mt-5 py-3 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-teal-700 hover:to-cyan-800 shadow-lg text-white font-bold text-lg tracking-wide transition-all disabled:opacity-80 flex flex-row gap-2 items-center justify-center"
-            disabled={pending}
-            type="submit"
-          >
-            <KeyIcon className="w-5 h-5" />
-            {pending ? "Ingresando..." : "Entrar"}
-          </button>
-          {error &&
-            <div className="mt-3 px-3 py-2 rounded-lg bg-red-200/80 text-sm text-red-900 font-semibold text-center shadow">
-              {error}
+        
+        <div className="w-full flex flex-col items-center gap-2">
+          <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="off">
+            <div>
+              <label className="font-bold text-xs text-[#1F2937] ml-1 mb-1 block uppercase tracking-wide">Correo electrónico</label>
+              <input
+                className="w-full rounded-xl px-4 py-3 border border-[#EEF2F7] bg-[#F6F8FB] focus:bg-white focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6] transition-all text-sm font-medium text-[#1F2937] outline-none"
+                type="email"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                required
+                placeholder="tu@correo.com"
+                value={form.email}
+                onChange={handleChange}
+              />
             </div>
-          }
-          {success &&
-            <div className="mt-3 px-3 py-2 rounded-lg bg-green-200/80 text-sm text-emerald-800 font-bold text-center flex flex-row items-center gap-2 justify-center shadow">
-              <CheckCircleIcon className="w-6 h-6 text-green-700" /> {success}
+            <div>
+              <label className="font-bold text-xs text-[#1F2937] ml-1 mb-1 block uppercase tracking-wide">Contraseña</label>
+              <input
+                className="w-full rounded-xl px-4 py-3 border border-[#EEF2F7] bg-[#F6F8FB] focus:bg-white focus:ring-2 focus:ring-[#00A6A6]/30 focus:border-[#00A6A6] transition-all text-sm font-medium text-[#1F2937] outline-none"
+                type="password"
+                name="password"
+                required
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange}
+              />
             </div>
-          }
-        </form>
-        <div className="w-full text-right pt-3 text-xs text-slate-600 dark:text-slate-400">
-          <a
-            href="/forgot-password"
-            className="text-cyan-700 dark:text-cyan-300 underline font-bold hover:text-emerald-600 transition"
-          >
+            <button
+              className="mt-4 py-3.5 rounded-xl bg-gradient-to-r from-[#00A6A6] to-[#0FB5C9] shadow-lg shadow-[#00A6A6]/20 text-white font-extrabold text-[15px] tracking-wide transition-all duration-300 hover:shadow-xl hover:shadow-[#00A6A6]/30 hover:-translate-y-0.5 disabled:opacity-70 disabled:transform-none flex flex-row gap-2 items-center justify-center outline-none focus-visible:ring-4 ring-[#0FB5C9]/50"
+              disabled={pending}
+              type="submit"
+            >
+              <KeyIcon className="w-5 h-5 stroke-2" />
+              {pending ? "Ingresando..." : "Acceder"}
+            </button>
+            {error &&
+              <div className="mt-2 px-4 py-3 rounded-xl bg-rose-50 border border-rose-100 text-xs text-rose-600 font-bold text-center shadow-sm">
+                {error}
+              </div>
+            }
+            {success &&
+              <div className="mt-2 px-4 py-3 rounded-xl bg-emerald-50 border border-[#00A6A6]/20 text-xs text-[#00A6A6] font-bold text-center flex flex-row items-center gap-2 justify-center shadow-sm">
+                <CheckCircleIcon className="w-5 h-5" /> {success}
+              </div>
+            }
+          </form>
+        </div>
+        
+        <div className="w-full text-center pt-6 mt-6 border-t border-[#EEF2F7] text-xs font-semibold text-slate-500">
+          <a href="/forgot-password" className="text-[#00A6A6] hover:text-[#0FB5C9] transition-colors block mb-2">
             ¿Olvidaste tu contraseña?
           </a>
-          <br />
           ¿Aún no tienes cuenta?{" "}
-          <a href="/register" className="text-cyan-700 dark:text-cyan-300 underline font-bold hover:text-emerald-600 transition">Regístrate aquí</a>
+          <a href="/register" className="text-[#00A6A6] hover:text-[#0FB5C9] font-bold transition-colors">Regístrate aquí</a>
         </div>
-        <OtherLoginPrompt forRole="employee" className="mt-4" />
+        
+        <OtherLoginPrompt forRole="employee" />
       </div>
     </div>
   );

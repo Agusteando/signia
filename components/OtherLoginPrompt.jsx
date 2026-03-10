@@ -1,40 +1,25 @@
-
 "use client";
 import Link from "next/link";
 import { ShieldCheckIcon, ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/solid";
 
-/**
- * Shows a clear link for users to switch between Employee/Candidate and Admin login screens.
- * Should be shown at the bottom of every login page.
- *
- * @param {("admin"|"employee")} forRole - The current screen's "role": "admin" or "employee"
- */
 export default function OtherLoginPrompt({ forRole = "employee", className = "" }) {
   if (forRole === "admin") {
-    // On admin login, link to empleado/candidato
     return (
-      <div className={`w-full text-center pt-3 text-xs sm:text-sm font-bold ${className}`}>
-        <ArrowRightEndOnRectangleIcon className="w-4 h-4 inline mb-0.5 text-cyan-600 mr-1" />
+      <div className={`w-full text-center pt-6 mt-6 border-t border-[#EEF2F7] text-xs font-semibold text-slate-500 ${className}`}>
+        <ArrowRightEndOnRectangleIcon className="w-4 h-4 inline mb-0.5 text-[#00A6A6] mr-1" />
         ¿Eres empleado o candidato?{" "}
-        <Link
-          href="/empleado"
-          className="text-cyan-700 underline font-bold hover:text-fuchsia-700 transition"
-        >
+        <Link href="/empleado" className="text-[#00A6A6] hover:text-[#0FB5C9] font-bold transition-colors">
           Ingresa aquí
         </Link>
       </div>
     );
   }
-  // On empleado/candidato login, link to admin
   return (
-    <div className={`w-full text-center pt-3 text-xs sm:text-sm font-bold ${className}`}>
-      <ShieldCheckIcon className="w-4 h-4 inline mb-0.5 text-fuchsia-700 mr-1" />
-      ¿Eres administrador?{" "}
-      <Link
-        href="/admin"
-        className="text-fuchsia-700 underline font-bold hover:text-cyan-700 transition"
-      >
-        Ingresa aquí
+    <div className={`w-full text-center pt-6 mt-6 border-t border-[#EEF2F7] text-xs font-semibold text-slate-500 ${className}`}>
+      <ShieldCheckIcon className="w-4 h-4 inline mb-0.5 text-[#6A3DF0] mr-1" />
+      ¿Eres administrador autorizado?{" "}
+      <Link href="/admin" className="text-[#6A3DF0] hover:text-[#7B4DFF] font-bold transition-colors">
+        Acceso Workspace
       </Link>
     </div>
   );

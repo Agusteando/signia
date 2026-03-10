@@ -39,20 +39,20 @@ export default function UserManagementTable({
   return (
     <table className="w-full text-left border-collapse">
       <thead>
-        <tr className="border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider bg-white">
-          <th className="py-4 font-medium w-10 text-center">
-            <input type="checkbox" className="accent-slate-900 w-4 h-4 rounded cursor-pointer border-slate-300" checked={allSelected} onChange={e => onSelectAll(e.target.checked)} />
+        <tr className="border-b border-[#EEF2F7] text-slate-400 text-xs uppercase tracking-widest bg-transparent">
+          <th className="py-4 font-bold w-12 text-center pl-2">
+            <input type="checkbox" className="accent-[#6A3DF0] w-4 h-4 rounded cursor-pointer border-slate-300" checked={allSelected} onChange={e => onSelectAll(e.target.checked)} />
           </th>
-          <th className="px-4 py-4 font-medium">Usuario</th>
-          <th className="px-4 py-4 font-medium">Plantel</th>
-          <th className="px-4 py-4 font-medium">Estatus</th>
-          <th className="px-4 py-4 font-medium">Progreso</th>
-          <th className="px-4 py-4 font-medium text-right">Acciones</th>
+          <th className="px-4 py-4 font-bold">Colaborador</th>
+          <th className="px-4 py-4 font-bold">Plantel</th>
+          <th className="px-4 py-4 font-bold">Estatus</th>
+          <th className="px-4 py-4 font-bold">Progreso</th>
+          <th className="px-4 py-4 font-bold text-right pr-6">Acciones</th>
         </tr>
       </thead>
       <tbody>
         {users.length === 0 && (
-          <tr><td colSpan={6} className="text-center text-slate-400 py-10 text-sm">No se encontraron usuarios con los filtros aplicados.</td></tr>
+          <tr><td colSpan={6} className="text-center text-slate-400 py-12 text-sm font-medium">No se encontraron colaboradores que coincidan con la búsqueda.</td></tr>
         )}
         {users.map(u => (
           <UserRow
