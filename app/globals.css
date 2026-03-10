@@ -3,7 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth scrolling and refined typography rendering */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -11,35 +10,58 @@ html {
 }
 
 :root {
-  --background: #FAFAFA;
-  --foreground: #111827;
+  --background: #F6F8FB; /* Signia Neutral */
+  --foreground: #1F2937; /* Signia Text */
+  
+  /* Signia Brand Palette */
+  --signia-purple: #6A3DF0;
+  --signia-purple-light: #7B4DFF;
+  --signia-teal: #00A6A6;
+  --signia-teal-light: #0FB5C9;
+  --signia-deep-teal: #004C4C;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-signia-purple: var(--signia-purple);
+  --color-signia-teal: var(--signia-teal);
+  --color-signia-deep: var(--signia-deep-teal);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
 }
 
-/* Base UI Elements for SaaS Polish */
+/* Premium SaaS Surfaces */
 .glass-panel {
-  @apply bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.02)];
+  @apply bg-white/70 backdrop-blur-xl border-b border-white/40 shadow-[0_4px_30px_rgba(106,61,240,0.03)];
 }
 
-.card-elevated {
-  @apply bg-white border border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.05),0_1px_2px_-1px_rgba(0,0,0,0.05)] rounded-xl;
+.card-signia {
+  @apply relative bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_-8px_rgba(31,41,55,0.06)] rounded-2xl overflow-hidden transition-all duration-300;
 }
+
+.card-signia:hover {
+  @apply shadow-[0_16px_48px_-12px_rgba(106,61,240,0.12)] border-white/80 -translate-y-0.5;
+}
+
+.text-gradient-signia {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#6A3DF0] to-[#00A6A6];
+}
+
+/* Human-centered Floating Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-2deg); }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed { animation: float-delayed 8s ease-in-out infinite 1s; }
+.animate-float-slow { animation: float 10s ease-in-out infinite 2s; }

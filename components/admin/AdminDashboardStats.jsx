@@ -3,54 +3,56 @@ import React from "react";
 import { CheckBadgeIcon, ExclamationTriangleIcon, UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 
 export default function AdminDashboardStats({ summary }) {
-  // Gracefully handles both payload structures mapped from `page.jsx` vs `page.js`
   return (
-    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+    <div className="flex flex-wrap items-center justify-end gap-3">
       <StatCard 
-        title="Empleados" 
-        value={summary.totalActiveEmployees ?? summary.totalUsers} 
+        title="Colaboradores" 
+        value={summary.totalActiveEmployees} 
         icon={UserGroupIcon} 
-        color="slate" 
+        type="primary"
       />
       <StatCard 
-        title="Completos" 
-        value={summary.completedActiveEmployees ?? summary.userDocsCompleted} 
+        title="Validados" 
+        value={summary.completedActiveEmployees} 
         icon={CheckBadgeIcon} 
-        color="emerald" 
+        type="teal"
       />
       <StatCard 
         title="Incompletos" 
-        value={summary.incompleteActiveEmployees ?? (summary.totalUsers - summary.userDocsCompleted)} 
+        value={summary.incompleteActiveEmployees} 
         icon={ExclamationTriangleIcon} 
-        color="amber" 
+        type="purple"
       />
       <StatCard 
         title="Candidatos" 
-        value={summary.totalActiveCandidates ?? 0} 
+        value={summary.totalActiveCandidates} 
         icon={UserPlusIcon} 
-        color="slate" 
+        type="neutral"
       />
     </div>
   );
 }
 
-function StatCard({ title, value, icon: Icon, color }) {
-  const colorMap = {
-    slate: "text-slate-700 bg-slate-100/80 border-slate-200/80",
-    emerald: "text-emerald-700 bg-emerald-50 border-emerald-200/80",
-    amber: "text-amber-700 bg-amber-50 border-amber-200/80",
-    rose: "text-rose-700 bg-rose-50 border-rose-200/80",
+function StatCard({ title, value, icon: Icon, type }) {
+  const styles = {
+    primary: "group-hover:text-signia-purple group-hover:bg-signia-purple/10",
+    teal: "group-hover:text-signia-teal group-hover:bg-signia-teal/10",
+    purple: "group-hover:text-[#7B4DFF] group-hover:bg-[#7B4DFF]/10",
+    neutral: "group-hover:text-slate-800 group-hover:bg-slate-200",
   };
 
   return (
-    <div className="flex items-center gap-4 bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.02)] min-w-[140px] transition-shadow hover:shadow-md">
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${colorMap[color]}`}>
-        <Icon className="w-4 h-4 stroke-2" />
+    <div className="group relative bg-white/60 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-slate-200/60 shadow-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-white hover:border-slate-300 min-w-[150px]">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{title}</span>
+        <Icon className={`w-4 h-4 text-slate-400 transition-colors duration-300 ${styles[type]}`} />
       </div>
-      <div className="flex flex-col">
-        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{title}</span>
-        <span className="text-lg font-semibold text-slate-900 leading-none mt-1">{value ?? 0}</span>
+      <div className="flex items-end gap-2">
+        <span className="text-2xl font-black text-slate-900 leading-none">{value ?? 0}</span>
       </div>
+      
+      {/* Micro-interaction expansion line */}
+      <div className={`absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-signia-purple to-signia-teal transition-all duration-500 group-hover:w-full rounded-b-2xl`} />
     </div>
   );
 }
